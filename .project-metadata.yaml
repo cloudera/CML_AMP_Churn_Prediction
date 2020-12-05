@@ -19,8 +19,6 @@ environment_variables:
   MODEL_REPLICAS:
     default: "3"
     description: "Number of model replicas, 3 is standard for redundancy"
-  TASK_TYPE:
-    default: NOT_OVERRIDEN
 
 tasks:
   - type: create_job
@@ -29,8 +27,6 @@ tasks:
     script: 0_bootstrap.py
     arguments: None
     short_summary: Job to install dependencies and download training data.
-    environment:
-      TASK_TYPE: CREATE/RUN_JOB
     kernel: python3
 
   - type: run_job
@@ -45,8 +41,6 @@ tasks:
     script: 4_train_models.py
     arguments: None
     short_summary: Job to train models.
-    environment:
-      TASK_TYPE: CREATE/RUN_JOB
     kernel: python3
 
   - type: run_job
@@ -79,21 +73,15 @@ tasks:
     target_file_path: 5_model_serve_explainer.py
     target_function_name: explain
     kernel: python3
-    environment_variables:
-      TASK_TYPE: CREATE/BUILD/DEPLOY_MODEL
 
   - type: deploy_model
     name: telco_churn_model
     entity_label: telco_churn_model
     cpu: 1
     gpu: 0
-    environment_variables:
-      TASK_TYPE: CREATE/BUILD/DEPLOY_MODEL
 
   - type: start_application
     name: Application to serve Churn  front app UI
     subdomain: churn
     script: 6_application.py
-    environment_variables:
-      TASK_TYPE: START_APPLICATION
     kernel: python3
