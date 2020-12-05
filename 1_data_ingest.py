@@ -32,7 +32,7 @@
 # > [environment variables](https://docs.cloudera.com/machine-learning/cloud/import-data/topics/ml-environment-variables.html)
 # > as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
 #
-# To get the the access keys that are used for your in the CDP DataLake, you can follow
+# To get the the access keys that are used for you in the CDP DataLake, you can follow
 # [this Cloudera Community Tutorial](https://community.cloudera.com/t5/Community-Articles/How-to-get-AWS-access-keys-via-IDBroker-in-CDP/ta-p/295485)
 
 #
@@ -55,10 +55,10 @@
 # that comes with CML only takes a few more steps.
 # But first we need to fetch the data from Cloud Storage and save it as a Hive table.
 #
-# > Specify `STORAGE` as an
+# > First we specify `STORAGE` as an
 # > [environment variable](https://docs.cloudera.com/machine-learning/cloud/import-data/topics/ml-environment-variables.html)
 # > in your project settings containing the Cloud Storage location used by the DataLake to store
-# > Hive data. On AWS it will `s3a://[something]`, on Azure it will be `abfs://[something]` and on
+# > Hive data. On AWS it will be `s3a://[something]`, on Azure it will be `abfs://[something]` and on
 # > on prem CDSW cluster, it will be `hdfs://[something]`
 #
 # This was done for you when you ran `0_bootstrap.py`, so the following code is set up to run as is.
