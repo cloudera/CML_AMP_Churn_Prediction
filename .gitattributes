@@ -1,0 +1,2 @@
+# Override auto convert for .sh files
+*.sh text eol=lf
