@@ -10,22 +10,17 @@ environment_variables:
   AWS_ACCESS_KEY:
     default: "AWS ACCESS KEY"
     description: "Access Key ID for accessing S3 bucket"
-    prompt_user: true
   AWS_SECRET_KEY:
     default: "AWS SECRET KEY"
     description: "Secret Access Key for accessing S3 bucket"
-    prompt_user: true
   HADOOP_DATA_SOURCE:
     default: "S3 URL FOR DATASET"
     description: "S3 URL to large data set"
-    prompt_user: true
   MODEL_REPLICAS:
     default: "3"
     description: "Number of model replicas, 3 is standard for redundancy"
-    prompt_user: false
   TASK_TYPE:
     default: NOT_OVERRIDEN
-    prompt_user: false
 
 tasks:
   - type: create_job
