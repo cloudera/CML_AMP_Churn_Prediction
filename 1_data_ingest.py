@@ -186,4 +186,3 @@ spark.sql("describe formatted default.telco_churn").toPandas()
 # > script saves at: `/home/cdsw/job1/output.csv`.
 
 # Try running this script `1_data_ingest.py` for use in such a Job.
-

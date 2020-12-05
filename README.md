@@ -255,4 +255,3 @@ need to set the `model_id` number from the model created in step 5 on line 53.
 The model number is on the model's main page.
 
 ![model_accuracy](images/model_accuracy.png)
-

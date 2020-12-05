@@ -57,4 +57,3 @@ except:
 !hdfs dfs -mkdir -p $STORAGE/datalake/data
 !hdfs dfs -mkdir -p $STORAGE/datalake/data/churn
 !hdfs dfs -copyFromLocal /home/cdsw/raw/WA_Fn-UseC_-Telco-Customer-Churn-.csv $STORAGE/datalake/data/churn/WA_Fn-UseC_-Telco-Customer-Churn-.csv
-
