@@ -4,9 +4,10 @@ This project is a Cloudera Machine Learning
 Project Prototype**. It has all the code and data needed to deploy an end-to-end machine 
 learning project in a running CML instance.
 
+
 ## Project Overview
 This project builds the telco churn with model interpretability project discussed in more 
-detail [this blog post](https://blog.cloudera.com/visual-model-interpretability-for-telco-churn-in-cloudera-data-science-workbench/). 
+detail in [this blog post](https://blog.cloudera.com/visual-model-interpretability-for-telco-churn-in-cloudera-data-science-workbench/). 
 The initial idea and code comes from the FFL Interpretability report which is now freely 
 available and you can read the full report [here](https://ff06-2020.fastforwardlabs.com/)
 
@@ -20,7 +21,7 @@ capability and finally a basic flask based web application is deployed that will
 you interact with the real-time model to see which factors in the data have the most 
 influence on the churn probability.
 
-By following the notebooks in this project, you will understand how to perform similar 
+By following the notebooks and scripts in this project, you will understand how to perform similar 
 classification tasks on CML as well as how to use the platform's major features to your 
 advantage. These features include **streamlined model experimentation**, 
 **point-and-click model deployment**, and **ML app hosting**.
@@ -31,14 +32,25 @@ We trust that you are familiar with typical data science workflows
 and do not need detailed explanations of the code.
 Notes that are *specific to CML* will be emphasized in **block quotes**.
 
-### Initialize the Project
-There are a couple of steps needed at the start to configure the Project and Workspace 
-settings so each step will run sucessfully. You **must** run the project bootstrap 
-before running other steps. If you just want to launch the model interpretability 
-application without going through each step manually, then you can also deploy the 
-complete project. 
+If you have deployed this Applied ML Prototype into a project with the automatic execution 
+of project setup steps, you will not need to run any of the setup steps below: 
+everything is already installed for you. However, you may still find it instructive to review 
+the steps and their corresponding files, and in particular run `2_data_exploration.ipynb` and
+`3_model_building.ipynb` in a Jupyter Notebook session to see the process that informed the 
+creation of the final model. You can also skip straight ahead and look at the already deployed 
+Model and Application if you prefer.
 
-***Project bootstrap***
+If you are building this Applied ML Prototype from the source code, without automatic 
+execution of project setup steps, then you should follow the steps below carefully, in order.
+
+
+## Project Build Process
+
+### 0 Bootstrap
+There are a couple of steps needed at the start to configure the Project and Workspace 
+settings so each step will run successfully. If you are building the Applied ML Prototype 
+from the source code, then you must run the project bootstrap file 
+before running other steps.
 
 Open the file `0_bootstrap.py` in a normal workbench python3 session. You only need a 
 1 vCPU / 2 GiB instance. Once the session is loaded, click **Run > Run All Lines**. 
@@ -47,33 +59,7 @@ which is the root of default file storage location for the Hive Metastore in the
 DataLake (e.g. `s3a://my-default-bucket`). It will also upload the data used in the 
 project to `$STORAGE/datalake/data/churn/`. The original file comes as part of this 
 git repo in the `raw` folder.
-  
-***Deploy the Complete Project***
 
-If you just wish build the project artifacts without going through each step manually, 
-run the `8_build_projet.py` file in a python3 session. Again a 1 vCPU / 2 GiB instance 
-will be suffient. This script will: 
-* run the bootstrap
-* then create the Hive Table and import the data
-* deploy the model
-* update the application files to use this new model
-* deploy the application
-* run the model drift simulation
-Once the script has completed you will see the new model and application are now available 
-in the project.
-
-## Project Build
-If you want go through each of the steps manually to build and understand how the project 
-works, follow the steps below. There is a lot more detail and explanation/comments in each 
-of the files/notebooks so its worth looking into those. Follow the steps below and you 
-will end up with a running application.
-
-### 0 Bootstrap
-Just to reiterate that you have run the bootstrap for this project before anything else. 
-So make sure you run step 0 first. 
-
-Open the file `0_bootstrap.py` in a normal workbench python3 session. You only need a 
-1 CPU / 2 GB instance. Then **Run > Run All Lines**
 
 ### 1 Ingest Data
 This script will read in the data csv from the file uploaded to the object store (s3/adls) setup 
@@ -81,31 +67,34 @@ during the bootstrap and create a managed table in Hive. This is all done using 
 
 Open `1_data_ingest.py` in a Workbench session: python3, 1 CPU, 2 GB. Run the file.
 
+
 ### 2 Explore Data
-This is a Jupyter Notebook that does some basic data exploration and visualistaion. It 
+This is a Jupyter Notebook that does some basic data exploration and visualisation. It 
 is to show how this would be part of the data science workflow.
 
 ![data](https://raw.githubusercontent.com/fletchjeff/cml_churn_demo_mlops/master/images/data.png)
 
-Open a Jupyter Notebook session (rather than a work bench): python3, 1 CPU, 2 GB and 
+This time, open a Jupyter Notebook session (rather than a workbench session): python3, 1 CPU, 2 GB and 
 open the `2_data_exploration.ipynb` file. 
 
 At the top of the page click **Cells > Run All**.
+
 
 ### 3 Model Building
 This is also a Jupyter Notebook to show the process of selecting and building the model 
 to predict churn. It also shows more details on how the LIME model is created and a bit 
 more on what LIME is actually doing.
 
-Open a Jupyter Notebook session (rather than a work bench): python3, 1 CPU, 2 GB and 
-open the `	3_model_building.ipynb` file. 
+Open a Jupyter Notebook session (rather than a workbench session): python3, 1 CPU, 2 GB and 
+open the `3_model_building.ipynb` file. 
 
 At the top of the page click **Cells > Run All**.
 
+
 ### 4 Model Training
-A model pre-trained is saved with the repo has been and placed in the `models` directory. 
-If you want to retrain the model, open the `4_train_models.py` file in a workbench  session: 
-python3 1 vCPU, 2 GiB and run the file. The newly model will be saved in the models directory 
+A pre-trained model is saved with the repo has been and placed in the `models` directory. 
+If you want to retrain the model, open the `4_train_models.py` file in a workbench session: 
+python3 1 vCPU, 2 GiB and run the file. The newly trained model will be saved in the models directory 
 named `telco_linear`. 
 
 There are 2 other ways of running the model training process
@@ -255,4 +244,3 @@ need to set the `model_id` number from the model created in step 5 on line 53.
 The model number is on the model's main page.
 
 ![model_accuracy](images/model_accuracy.png)
-

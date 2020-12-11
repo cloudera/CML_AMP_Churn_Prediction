@@ -32,7 +32,7 @@
 # > [environment variables](https://docs.cloudera.com/machine-learning/cloud/import-data/topics/ml-environment-variables.html)
 # > as `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
 #
-# To get the the access keys that are used for your in the CDP DataLake, you can follow
+# To get the the access keys that are used for you in the CDP DataLake, you can follow
 # [this Cloudera Community Tutorial](https://community.cloudera.com/t5/Community-Articles/How-to-get-AWS-access-keys-via-IDBroker-in-CDP/ta-p/295485)
 
 #
@@ -55,10 +55,10 @@
 # that comes with CML only takes a few more steps.
 # But first we need to fetch the data from Cloud Storage and save it as a Hive table.
 #
-# > Specify `STORAGE` as an
+# > First we specify `STORAGE` as an
 # > [environment variable](https://docs.cloudera.com/machine-learning/cloud/import-data/topics/ml-environment-variables.html)
 # > in your project settings containing the Cloud Storage location used by the DataLake to store
-# > Hive data. On AWS it will `s3a://[something]`, on Azure it will be `abfs://[something]` and on
+# > Hive data. On AWS it will be `s3a://[something]`, on Azure it will be `abfs://[something]` and on
 # > on prem CDSW cluster, it will be `hdfs://[something]`
 #
 # This was done for you when you ran `0_bootstrap.py`, so the following code is set up to run as is.
@@ -118,10 +118,14 @@ schema = StructType(
 # Now we can read in the data from Cloud Storage into Spark...
 
 storage = os.environ['STORAGE']
+data_location = os.environ['DATA_LOCATION']
+hive_database = os.environ['HIVE_DATABASE']
+hive_table = os.environ['HIVE_TABLE']
+hive_table_fq = hive_database + '.' + hive_table
 
 telco_data = spark.read.csv(
-    "{}/datalake/data/churn/WA_Fn-UseC_-Telco-Customer-Churn-.csv".format(
-        storage),
+    "{}/{}/WA_Fn-UseC_-Telco-Customer-Churn-.csv".format(
+        storage, data_location),
     header=True,
     schema=schema,
     sep=',',
@@ -145,26 +149,26 @@ telco_data.coalesce(1).write.csv(
 
 spark.sql("show databases").show()
 
-spark.sql("show tables in default").show()
+spark.sql("show tables in " + hive_database).show()
 
 # Create the Hive table
 # This is here to create the table in Hive used be the other parts of the project, if it
 # does not already exist.
 
-if ('telco_churn' not in list(spark.sql("show tables in default").toPandas()['tableName'])):
-    print("creating the telco_churn database")
+if (hive_table not in list(spark.sql("show tables in " + hive_database).toPandas()['tableName'])):
+    print("creating the " + hive_table + " table")
     telco_data\
         .write.format("parquet")\
         .mode("overwrite")\
         .saveAsTable(
-            'default.telco_churn'
+            hive_table_fq
         )
 
 # Show the data in the hive table
-spark.sql("select * from default.telco_churn").show()
+spark.sql("select * from " + hive_table_fq).show()
 
 # To get more detailed information about the hive table you can run this:
-spark.sql("describe formatted default.telco_churn").toPandas()
+spark.sql("describe formatted " + hive_table_fq).toPandas()
 
 # Other ways to access data
 
@@ -186,4 +190,3 @@ spark.sql("describe formatted default.telco_churn").toPandas()
 # > script saves at: `/home/cdsw/job1/output.csv`.
 
 # Try running this script `1_data_ingest.py` for use in such a Job.
-

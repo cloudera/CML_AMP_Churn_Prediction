@@ -1,4 +1,4 @@
-name: ML Churn Demo
+name: ML Churn Prototype
 description: Prototype to demonstrate building a churn model on CML
 author: Cloudera Engineer
 specification_version: 1.0
@@ -7,25 +7,21 @@ date: "2020-09-29"
 api_version: 1
 
 environment_variables:
-  AWS_ACCESS_KEY:
-    default: "AWS ACCESS KEY"
-    description: "Access Key ID for accessing S3 bucket"
-    prompt_user: true
-  AWS_SECRET_KEY:
-    default: "AWS SECRET KEY"
-    description: "Secret Access Key for accessing S3 bucket"
-    prompt_user: true
-  HADOOP_DATA_SOURCE:
-    default: "S3 URL FOR DATASET"
-    description: "S3 URL to large data set"
-    prompt_user: true
-  MODEL_REPLICAS:
-    default: "3"
-    description: "Number of model replicas, 3 is standard for redundancy"
-    prompt_user: false
-  TASK_TYPE:
-    default: NOT_OVERRIDEN
-    prompt_user: false
+  DATA_LOCATION:
+    default: data/churn_prototype
+    description: >-
+      Relative path that will be used to store the data used for this prototype.
+      This should be a location you have write access to, and which is suitable for non-production data.
+  HIVE_DATABASE:
+    default: default
+    description: >-
+      Name of the Hive database that will be used to create the Hive table used for this prototype.
+      This should be a Hive database you have write access to, and which is suitable for non-production data.
+  HIVE_TABLE:
+    default: churn_prototype
+    description: >-
+      Name of the Hive table that will be created and populated with the data used for this prototype.
+      If the table already exists, the prototype will assume it already contains the data for this prototype.
 
 tasks:
   - type: create_job
@@ -34,8 +30,6 @@ tasks:
     script: 0_bootstrap.py
     arguments: None
     short_summary: Job to install dependencies and download training data.
-    environment:
-      TASK_TYPE: CREATE/RUN_JOB
     kernel: python3
 
   - type: run_job
@@ -45,13 +39,25 @@ tasks:
       Running the job to install dependencies.
 
   - type: create_job
+    name: Ingest data
+    entity_label: ingest_data
+    script: 1_data_ingest.py
+    arguments: None
+    short_summary: Job to ingest data into our Hive table.
+    kernel: python3
+
+  - type: run_job
+    entity_label: ingest_data
+    short_summary: Running ingest data job.
+    long_summary: >-
+      Running the job to ingest data.
+
+  - type: create_job
     name: Train Churn Model
     entity_label: train_model
     script: 4_train_models.py
     arguments: None
     short_summary: Job to train models.
-    environment:
-      TASK_TYPE: CREATE/RUN_JOB
     kernel: python3
 
   - type: run_job
@@ -79,26 +85,20 @@ tasks:
     entity_label: telco_churn_model
     comment: Build churn model
     examples:
-      - request: '{"StreamingTV":"No","MonthlyCharges":70.35,"PhoneService":"No","PaperlessBilling":"No","Partner":"No","OnlineBackup":"No","gender":"Female","Contract":"Month-to-month","TotalCharges":1397.475,"StreamingMovies":"No","DeviceProtection":"No","PaymentMethod":"Bank transfer (automatic)","tenure":29,"Dependents":"No","OnlineSecurity":"No","MultipleLines":"No","InternetService":"DSL","SeniorCitizen":"No","TechSupport":"No"}'
+      - request: {"StreamingTV":"No","MonthlyCharges":70.35,"PhoneService":"No","PaperlessBilling":"No","Partner":"No","OnlineBackup":"No","gender":"Female","Contract":"Month-to-month","TotalCharges":1397.475,"StreamingMovies":"No","DeviceProtection":"No","PaymentMethod":"Bank transfer (automatic)","tenure":29,"Dependents":"No","OnlineSecurity":"No","MultipleLines":"No","InternetService":"DSL","SeniorCitizen":"No","TechSupport":"No"}
         response: ""
     target_file_path: 5_model_serve_explainer.py
     target_function_name: explain
     kernel: python3
-    environment_variables:
-      TASK_TYPE: CREATE/BUILD/DEPLOY_MODEL
 
   - type: deploy_model
     name: telco_churn_model
     entity_label: telco_churn_model
     cpu: 1
     gpu: 0
-    environment_variables:
-      TASK_TYPE: CREATE/BUILD/DEPLOY_MODEL
 
   - type: start_application
     name: Application to serve Churn  front app UI
     subdomain: churn
     script: 6_application.py
-    environment_variables:
-      TASK_TYPE: START_APPLICATION
     kernel: python3

@@ -5,7 +5,7 @@
 # tuning.
 
 # If you haven't yet, run through the initialization steps in the README file and Part 1.
-# In Part 1, the data is imported into the `default.telco_churn` table in Hive.
+# In Part 1, the data is imported into the table you specified in Hive.
 # All data accesses fetch from Hive.
 #
 # To simply train the model once, run this file in a workbench session.
@@ -108,6 +108,10 @@ from lime.lime_tabular import LimeTabularExplainer
 
 from churnexplainer import ExplainedModel, CategoricalEncoder
 
+hive_database = os.environ['HIVE_DATABASE']
+hive_table = os.environ['HIVE_TABLE']
+hive_table_fq = hive_database + '.' + hive_table
+
 data_dir = '/home/cdsw'
 
 idcol = 'customerID'
@@ -141,8 +145,8 @@ try:
         .master("local[*]")\
         .getOrCreate()
 
-    if (spark.sql("SELECT count(*) FROM default.telco_churn").collect()[0][0] > 0):
-        df = spark.sql("SELECT * FROM default.telco_churn").toPandas()
+    if (spark.sql("SELECT count(*) FROM " + hive_table_fq).collect()[0][0] > 0):
+        df = spark.sql("SELECT * FROM " + hive_table_fq).toPandas()
 except:
     print("Hive table has not been created")
     df = pd.read_csv(os.path.join(

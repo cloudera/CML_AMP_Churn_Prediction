@@ -107,6 +107,10 @@ import seaborn as sns
 import copy
 
 
+hive_database = os.environ['HIVE_DATABASE']
+hive_table = os.environ['HIVE_TABLE']
+hive_table_fq = hive_database + '.' + hive_table
+
 ## Set the model ID
 # Get the model id from the model you deployed in step 5. These are unique to each 
 # model on CML.
@@ -122,7 +126,7 @@ spark = SparkSession\
     .master("local[*]")\
     .getOrCreate()
 
-df = spark.sql("SELECT * FROM default.telco_churn").toPandas()
+df = spark.sql("SELECT * FROM " + hive_table_fq).toPandas()
 
 # Get the various Model CRN details
 HOST = os.getenv("CDSW_API_URL").split(
@@ -199,5 +203,3 @@ for index, vals in enumerate(response_labels_sample):
     end_timestamp_ms = vals['timestamp_ms']
     accuracy = classification_report(final_labels,response_labels,output_dict=True)["accuracy"]
     cdsw.track_aggregate_metrics({"accuracy": accuracy}, start_timestamp_ms , end_timestamp_ms, model_deployment_crn=Deployment_CRN)
-
-
