@@ -18,7 +18,7 @@
 # - limitations of the feature
 #
 # If you haven't yet, run through the initialization steps in the README file and Part 1. 
-# In Part 1, the data is imported into the `default.telco_churn` table in Hive. 
+# In Part 1, the data is imported into the table you specified in Hive.
 # All data accesses fetch from Hive.
 #
 ### Requirements

@@ -1,10 +1,27 @@
-name: ML Churn Demo
+name: ML Churn Prototype
 description: Prototype to demonstrate building a churn model on CML
 author: Cloudera Engineer
 specification_version: 1.0
 prototype_version: 1.0
 date: "2020-09-29"
 api_version: 1
+
+environment_variables:
+  DATA_LOCATION:
+    default: data/churn_prototype
+    description: >-
+      Relative path that will be used to store the data used for this prototype.
+      This should be a location you have write access to, and which is suitable for non-production data.
+  HIVE_DATABASE:
+    default: default
+    description: >-
+      Name of the Hive database that will be used to create the Hive table used for this prototype.
+      This should be a Hive database you have write access to, and which is suitable for non-production data.
+  HIVE_TABLE:
+    default: churn_prototype
+    description: >-
+      Name of the Hive table that will be created and populated with the data used for this prototype.
+      If the table already exists, the prototype will assume it already contains the data for this prototype.
 
 tasks:
   - type: create_job
@@ -20,6 +37,20 @@ tasks:
     short_summary: Running install dependencies training job.
     long_summary: >-
       Running the job to install dependencies.
+
+  - type: create_job
+    name: Ingest data
+    entity_label: ingest_data
+    script: 1_data_ingest.py
+    arguments: None
+    short_summary: Job to ingest data into our Hive table.
+    kernel: python3
+
+  - type: run_job
+    entity_label: ingest_data
+    short_summary: Running ingest data job.
+    long_summary: >-
+      Running the job to ingest data.
 
   - type: create_job
     name: Train Churn Model

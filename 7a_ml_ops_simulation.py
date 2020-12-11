@@ -107,6 +107,10 @@ import seaborn as sns
 import copy
 
 
+hive_database = os.environ['HIVE_DATABASE']
+hive_table = os.environ['HIVE_TABLE']
+hive_table_fq = hive_database + '.' + hive_table
+
 ## Set the model ID
 # Get the model id from the model you deployed in step 5. These are unique to each 
 # model on CML.
@@ -122,7 +126,7 @@ spark = SparkSession\
     .master("local[*]")\
     .getOrCreate()
 
-df = spark.sql("SELECT * FROM default.telco_churn").toPandas()
+df = spark.sql("SELECT * FROM " + hive_table_fq).toPandas()
 
 # Get the various Model CRN details
 HOST = os.getenv("CDSW_API_URL").split(
