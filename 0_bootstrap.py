@@ -53,9 +53,6 @@ except:
   storage_environment = cml.create_environment_variable(storage_environment_params)
   os.environ["STORAGE"] = storage
 
-# Upload the data to the cloud storage
-!hdfs dfs -mkdir -p $STORAGE/$DATA_LOCATION
-!hdfs dfs -copyFromLocal /home/cdsw/raw/WA_Fn-UseC_-Telco-Customer-Churn-.csv $STORAGE/$DATA_LOCATION/WA_Fn-UseC_-Telco-Customer-Churn-.csv
 # define a function to run commands on HDFS
 def run_cmd(cmd):
     """
@@ -82,3 +79,19 @@ def run_cmd(cmd):
         )
 
   return output, errors
+
+# Attempt to upload the data to the cloud storage, if error, use local
+try:
+    out, err = run_cmd(
+        f'hdfs dfs -mkdir -p {os.environ["STORAGE"]}/{os.environ["DATA_LOCATION"]}'
+    )
+    out, err = run_cmd(
+        f'hdfs dfs -copyFromLocal /home/cdsw/raw/WA_Fn-UseC_-Telco-Customer-Churn-.csv {os.environ["STORAGE"]}/{os.environ["DATA_LOCATION"]}/WA_Fn-UseC_-Telco-Customer-Churn-.csv'
+    )
+    cml.create_environment_variable({"STORAGE_MODE": "external"})
+except RuntimeError as error:
+    cml.create_environment_variable({"STORAGE_MODE": "local"})
+    print(
+        "Could not interact with external data store so local project storage will be used. HDFS DFS command failed with the following error:"
+    )
+    print(error)
