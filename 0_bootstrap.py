@@ -56,29 +56,30 @@ except:
 
 # define a function to run commands on HDFS
 def run_cmd(cmd):
-    """
-    Run Linux commands using Python's subprocess module
 
-    Args:
-        cmd (str) - Linux command to run
+  """
+  Run Linux commands using Python's subprocess module
 
-    Returns:
-        output
-        errors
-    """
-    print("Running system command: {0}".format(cmd))
+  Args:
+      cmd (str) - Linux command to run
 
-    args_list = cmd.split(" ")
-    proc = subprocess.Popen(
-        args_list, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
+  Returns:
+      output
+      errors
+  """
+  print("Running system command: {0}".format(cmd))
 
-    output, errors = proc.communicate()
-    if proc.returncode != 0:
-        raise RuntimeError(
-            "Error running command: {}. Return code: {}, Error: {}".format(args_list, proc.returncode, errors)
-        )
+  args_list = cmd.split(" ")
+  proc = subprocess.Popen(
+      args_list, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+  )
 
+  output, errors = proc.communicate()
+  if proc.returncode != 0:
+      raise RuntimeError(
+          "Error running command: {}. Return code: {}, Error: {}".format(args_list, proc.returncode, errors)
+      )
+      
   return output, errors
 
 # Attempt to upload the data to the cloud storage, if error, use local
