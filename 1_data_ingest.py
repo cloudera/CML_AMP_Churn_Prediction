@@ -70,12 +70,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 
 
-
-spark = SparkSession\
-    .builder\
-    .appName("PythonSQL")\
-    .master("local[*]")\
-    .getOrCreate()
+spark = SparkSession.builder.appName("PythonSQL").master("local[*]").getOrCreate()
 
 # **Note:**
 # Our file isn't big, so running it in Spark local mode is fine but you can add the following config
@@ -111,26 +106,10 @@ schema = StructType(
         StructField("PaymentMethod", StringType(), True),
         StructField("MonthlyCharges", DoubleType(), True),
         StructField("TotalCharges", DoubleType(), True),
-        StructField("Churn", StringType(), True)
+        StructField("Churn", StringType(), True),
     ]
 )
 
-# Now we can read in the data from Cloud Storage into Spark...
-
-storage = os.environ['STORAGE']
-data_location = os.environ['DATA_LOCATION']
-hive_database = os.environ['HIVE_DATABASE']
-hive_table = os.environ['HIVE_TABLE']
-hive_table_fq = hive_database + '.' + hive_table
-
-telco_data = spark.read.csv(
-    "{}/{}/WA_Fn-UseC_-Telco-Customer-Churn-.csv".format(
-        storage, data_location),
-    header=True,
-    schema=schema,
-    sep=',',
-    nullValue='NA'
-)
 # Now we can read in the data into Spark
 storage = os.environ["STORAGE"]
 data_location = os.environ["DATA_LOCATION"]
@@ -144,44 +123,34 @@ else:
     path = "raw/WA_Fn-UseC_-Telco-Customer-Churn-.csv"
 
 telco_data = spark.read.csv(path, header=True, schema=schema, sep=",", nullValue="NA")
+
+# ...and inspect the data.
 telco_data.show()
 
 telco_data.printSchema()
 
 # Now we can store the Spark DataFrame as a file in the local CML file system
-# *and* as a table in Hive used by the other parts of the project.
-
+# *and* (if possible) as a table in Hive used by the other parts of the project.
 telco_data.coalesce(1).write.csv(
-    "file:/home/cdsw/raw/telco-data/",
-    mode='overwrite',
-    header=True
+    "file:/home/cdsw/raw/telco-data/", mode="overwrite", header=True
 )
-
 spark.sql("show databases").show()
-
 spark.sql("show tables in " + hive_database).show()
 
-# Create the Hive table
+# Create the Hive table, if possible
 # This is here to create the table in Hive used be the other parts of the project, if it
 # does not already exist.
-
-if (hive_table not in list(spark.sql("show tables in " + hive_database).toPandas()['tableName'])):
 if os.environ["STORAGE_MODE"] == "external" and hive_table not in list(
     spark.sql("show tables in " + hive_database).toPandas()["tableName"]
 ):
     print("creating the " + hive_table + " table")
-    telco_data\
-        .write.format("parquet")\
-        .mode("overwrite")\
-        .saveAsTable(
-            hive_table_fq
-        )
+    telco_data.write.format("parquet").mode("overwrite").saveAsTable(hive_table_fq)
 
-# Show the data in the hive table
-spark.sql("select * from " + hive_table_fq).show()
+    # Show the data in the hive table
+    spark.sql("select * from " + hive_table_fq).show()
 
-# To get more detailed information about the hive table you can run this:
-spark.sql("describe formatted " + hive_table_fq).toPandas()
+    # To get more detailed information about the hive table you can run this:
+    spark.sql("describe formatted " + hive_table_fq).toPandas()
 
 # Other ways to access data
 
