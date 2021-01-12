@@ -86,7 +86,6 @@ from pyspark.sql.types import *
 from pyspark.sql import SparkSession
 import sys
 import os
-import os
 import datetime
 import subprocess
 import glob
@@ -94,7 +93,6 @@ import dill
 import pandas as pd
 import numpy as np
 import cdsw
-
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
@@ -103,9 +101,9 @@ from sklearn.linear_model import LogisticRegressionCV
 from sklearn.pipeline import TransformerMixin
 from sklearn.preprocessing import LabelEncoder
 from sklearn.compose import ColumnTransformer
-
 from lime.lime_tabular import LimeTabularExplainer
 
+os.chdir("code")
 from churnexplainer import ExplainedModel, CategoricalEncoder
 
 hive_database = os.environ["HIVE_DATABASE"]
