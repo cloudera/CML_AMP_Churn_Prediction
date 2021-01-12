@@ -120,7 +120,7 @@ hive_table_fq = hive_database + "." + hive_table
 if os.environ["STORAGE_MODE"] == "external":
     path = f"{storage}/{data_location}/WA_Fn-UseC_-Telco-Customer-Churn-.csv"
 else:
-    path = "raw/WA_Fn-UseC_-Telco-Customer-Churn-.csv"
+    path = "../raw/WA_Fn-UseC_-Telco-Customer-Churn-.csv"
 
 telco_data = spark.read.csv(path, header=True, schema=schema, sep=",", nullValue="NA")
 
