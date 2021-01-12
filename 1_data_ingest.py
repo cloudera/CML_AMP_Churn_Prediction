@@ -131,9 +131,19 @@ telco_data = spark.read.csv(
     sep=',',
     nullValue='NA'
 )
+# Now we can read in the data into Spark
+storage = os.environ["STORAGE"]
+data_location = os.environ["DATA_LOCATION"]
+hive_database = os.environ["HIVE_DATABASE"]
+hive_table = os.environ["HIVE_TABLE"]
+hive_table_fq = hive_database + "." + hive_table
 
-# ...and inspect the data.
+if os.environ["STORAGE_MODE"] == "external":
+    path = f"{storage}/{data_location}/WA_Fn-UseC_-Telco-Customer-Churn-.csv"
+else:
+    path = "raw/WA_Fn-UseC_-Telco-Customer-Churn-.csv"
 
+telco_data = spark.read.csv(path, header=True, schema=schema, sep=",", nullValue="NA")
 telco_data.show()
 
 telco_data.printSchema()
@@ -156,6 +166,9 @@ spark.sql("show tables in " + hive_database).show()
 # does not already exist.
 
 if (hive_table not in list(spark.sql("show tables in " + hive_database).toPandas()['tableName'])):
+if os.environ["STORAGE_MODE"] == "external" and hive_table not in list(
+    spark.sql("show tables in " + hive_database).toPandas()["tableName"]
+):
     print("creating the " + hive_table + " table")
     telco_data\
         .write.format("parquet")\
