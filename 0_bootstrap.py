@@ -21,6 +21,7 @@ import json
 import requests
 import xml.etree.ElementTree as ET
 import datetime
+import subprocess
 
 run_time_suffix = datetime.datetime.now()
 run_time_suffix = run_time_suffix.strftime("%d%m%Y%H%M%S")
@@ -55,3 +56,29 @@ except:
 # Upload the data to the cloud storage
 !hdfs dfs -mkdir -p $STORAGE/$DATA_LOCATION
 !hdfs dfs -copyFromLocal /home/cdsw/raw/WA_Fn-UseC_-Telco-Customer-Churn-.csv $STORAGE/$DATA_LOCATION/WA_Fn-UseC_-Telco-Customer-Churn-.csv
+# define a function to run commands on HDFS
+def run_cmd(cmd):
+    """
+    Run Linux commands using Python's subprocess module
+
+    Args:
+        cmd (str) - Linux command to run
+
+    Returns:
+        output
+        errors
+    """
+    print("Running system command: {0}".format(cmd))
+
+    args_list = cmd.split(" ")
+    proc = subprocess.Popen(
+        args_list, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+
+    output, errors = proc.communicate()
+    if proc.returncode != 0:
+        raise RuntimeError(
+            "Error running command: {}. Return code: {}, Error: {}".format(args_list, proc.returncode, errors)
+        )
+
+  return output, errors
