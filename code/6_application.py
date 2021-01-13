@@ -45,7 +45,7 @@
 # Session) in order to edit a file. Select the `flask/single_view.html` file and paste the Access
 # Key in at line 19.
 #
-# `        const accessKey = "mp3ebluylxh4yn5h9xurh1r0430y76ca";`
+# `        const accessKey = "<your_access_key_here>";`
 #
 # Save the file (if it has not auto saved already) and go back to the Project.
 #
@@ -137,8 +137,6 @@ if os.environ.get("SHTM_ACCESS_KEY") != None:
 em = ExplainedModel(model_name="telco_linear", data_dir="/home/cdsw")
 
 # Creates an explained version of a partiuclar data point. This is almost exactly the same as the data used in the model serving code.
-
-
 def explainid(N):
     customer_data = dataid(N)[0]
     customer_data.pop("id")
@@ -154,8 +152,6 @@ def explainid(N):
 
 
 # Gets the rest of the row data for a particular customer.
-
-
 def dataid(N):
     customer_id = em.data.index.dtype.type(N)
     customer_df = em.data.loc[[customer_id]].reset_index()
@@ -177,8 +173,6 @@ def send_file(path):
 
 
 # Grabs a sample explained dataset for 10 randomly selected customers.
-
-
 @flask_app.route("/sample_table")
 def sample_table():
     sample_ids = random.sample(range(1, len(em.data)), 10)
@@ -189,8 +183,6 @@ def sample_table():
 
 
 # Shows the names and all the catagories of the categorical variables.
-
-
 @flask_app.route("/categories")
 def categories():
     return jsonify(
@@ -199,8 +191,6 @@ def categories():
 
 
 # Shows the names and all the statistical variations of the numerica variables.
-
-
 @flask_app.route("/stats")
 def stats():
     return jsonify(em.stats)
