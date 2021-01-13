@@ -83,7 +83,6 @@ spark = SparkSession.builder.appName("PythonSQL").master("local[*]").getOrCreate
 
 # Since we know the data already, we can add schema upfront. This is good practice as Spark will
 # read *all* the Data if you try infer the schema.
-
 schema = StructType(
     [
         StructField("customerID", StringType(), True),
