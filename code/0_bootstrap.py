@@ -1,8 +1,8 @@
 ## Part 0: Bootstrap File
 # You need to run this at the start of the project. It will install the requirements, create the
-# STORAGE environment variable and copy the data from
-# raw/WA_Fn-UseC_-Telco-Customer-Churn-.csv into /datalake/data/churn of the STORAGE
-# location.
+# STORAGE and STORAGE_MODE environment variables and copy the data from
+# raw/WA_Fn-UseC_-Telco-Customer-Churn-.csv into specified path of the STORAGE
+# location, if applicable.
 
 # The STORAGE environment variable is the Cloud Storage location used by the DataLake
 # to store hive data. On AWS it will be s3a://[something], on Azure it will be
@@ -82,7 +82,9 @@ def run_cmd(cmd):
       
   return output, errors
 
-# Attempt to upload the data to the cloud storage, if error, use local
+# Attempt to upload the data to the cloud storage, if error,
+# set environment variable indicating the use of local storage
+# for project build
 try:
     out, err = run_cmd(
         f'hdfs dfs -mkdir -p {os.environ["STORAGE"]}/{os.environ["DATA_LOCATION"]}'
