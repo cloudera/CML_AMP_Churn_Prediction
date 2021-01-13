@@ -1,8 +1,7 @@
 # Part 4: Model Training
 
-# This script is used to train an Explained model and also how to use the
-# Jobs to run model training and the Experiments feature of CML to facilitate model
-# tuning.
+# This script is used to train an Explained model using the Jobs feature
+# in CML and the Experiments feature to facilitate model tuning
 
 # If you haven't yet, run through the initialization steps in the README file and Part 1.
 # In Part 1, the data is imported into the table you specified in Hive.
@@ -172,7 +171,6 @@ ct = ColumnTransformer(
 # Experiments options
 # If you are running this as an experiment, pass the cv, solver and max_iter values
 # as arguments in that order. e.g. `5 lbfgs 100`.
-
 if len(sys.argv) == 4:
     try:
         cv = int(sys.argv[1])
