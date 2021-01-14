@@ -159,7 +159,7 @@ def dataid(N):
 
 
 # Flask doing flasky things
-flask_app = Flask(__name__, static_url_path="")
+flask_app = Flask(__name__, static_folder="../flask")
 
 
 @flask_app.route("/")
