@@ -55,7 +55,11 @@ cml = CMLBootstrap(HOST, USERNAME, API_KEY, PROJECT_NAME)
 
 models = cml.get_models({})
 churn_model_details = [
-    model for model in models if model["name"] == "Churn Model API Endpoint"
+    model
+    for model in models
+    if model["name"] == "Churn Model API Endpoint"
+    and model["creator"]["username"] == USERNAME
+    and model["project"]["name"] == PROJECT_NAME
 ][0]
 latest_model = cml.get_model(
     {
