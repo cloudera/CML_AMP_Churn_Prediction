@@ -99,7 +99,7 @@ churn_model_details = [
     for model in models
     if model["name"] == "Churn Model API Endpoint"
     and model["creator"]["username"] == USERNAME
-    and model["project"]["name"] == PROJECT_NAME
+    and model["project"]["slug"] == PROJECT_NAME
 ][0]
 latest_model = cml.get_model(
     {
