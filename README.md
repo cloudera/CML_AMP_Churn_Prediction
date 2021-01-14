@@ -17,7 +17,6 @@ The project is organized with the following folder structure:
 ├── models/            # Directory to hold trained models
 ├── raw/               # The raw data file used within the project
 ├── cdsw-build.sh      # Shell script used to build environment for experiments and models
-├── lineage.yml        # Configures Apache Atlas integration for model governance
 ├── model_metrics.db   # SQL lite database used to store model drift metrics
 ├── README.md
 └── requirements.txt
