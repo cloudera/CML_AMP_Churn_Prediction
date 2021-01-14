@@ -64,7 +64,7 @@ tasks:
       Running the job to train models
 
   - type: create_model
-    name: Create Churn Model API Endpoint
+    name: Churn Model API Endpoint
     entity_label: telco_churn_model
     description: This model API endpoint is used to predict churn
     short_summary: Create the churn model prediction api endpoint
@@ -114,7 +114,7 @@ tasks:
     gpu: 0
 
   - type: start_application
-    name: Application to serve Churn front-end UI
+    name: Application to Serve Churn UI
     subdomain: churn
     script: code/6_application.py
     kernel: python3
