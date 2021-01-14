@@ -36,7 +36,6 @@
 #        metrics data
 # ```
 
-
 import cdsw, time, os
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -46,13 +45,7 @@ from cmlbootstrap import CMLBootstrap
 import seaborn as sns
 import sqlite3
 
-
-## Set the model ID
-# Get the model id from the model you deployed in step 5. These are unique to each
-# model on CML.
-model_id = "76"
-
-# Get the various Model CRN details
+# Get newly deployed churn model details using cmlbootstrapAPI
 HOST = os.getenv("CDSW_API_URL").split(":")[0] + "://" + os.getenv("CDSW_DOMAIN")
 USERNAME = os.getenv("CDSW_PROJECT_URL").split("/")[6]  # args.username  # "vdibia"
 API_KEY = os.getenv("CDSW_API_KEY")
@@ -60,28 +53,36 @@ PROJECT_NAME = os.getenv("CDSW_PROJECT")
 
 cml = CMLBootstrap(HOST, USERNAME, API_KEY, PROJECT_NAME)
 
+models = cml.get_models({})
+churn_model_details = [
+    model for model in models if model["name"] == "Churn Model API Endpoint"
+][0]
 latest_model = cml.get_model(
-    {"id": model_id, "latestModelDeployment": True, "latestModelBuild": True}
+    {
+        "id": churn_model_details["id"],
+        "latestModelDeployment": True,
+        "latestModelBuild": True,
+    }
 )
 
 Model_CRN = latest_model["crn"]
 Deployment_CRN = latest_model["latestModelDeployment"]["crn"]
 
-# Read in the model metrics dict.
+# Read in the model metrics dict
 model_metrics = cdsw.read_metrics(
     model_crn=Model_CRN, model_deployment_crn=Deployment_CRN
 )
 
-# This is a handy way to unravel the dict into a big pandas dataframe.
+# This is a handy way to unravel the dict into a big pandas dataframe
 metrics_df = pd.io.json.json_normalize(model_metrics["metrics"])
 metrics_df.tail().T
 
-# Write the data to SQL lite for Viz Apps
+# Write the data to SQL lite for visualization
 if not (os.path.exists("model_metrics.db")):
     conn = sqlite3.connect("model_metrics.db")
     metrics_df.to_sql(name="model_metrics", con=conn)
 
-# Do some conversions & calculations
+# Do some conversions & calculations on the raw metrics
 metrics_df["startTimeStampMs"] = pd.to_datetime(
     metrics_df["startTimeStampMs"], unit="ms"
 )
@@ -90,10 +91,11 @@ metrics_df["processing_time"] = (
     metrics_df["endTimeStampMs"] - metrics_df["startTimeStampMs"]
 ).dt.microseconds * 1000
 
-# This shows how to plot specific metrics.
+# Create plots for different tracked metrics
 sns.set_style("whitegrid")
 sns.despine(left=True, bottom=True)
 
+# Plot metrics.probability
 prob_metrics = metrics_df.dropna(subset=["metrics.probability"]).sort_values(
     "startTimeStampMs"
 )
@@ -101,6 +103,7 @@ sns.lineplot(
     x=range(len(prob_metrics)), y="metrics.probability", data=prob_metrics, color="grey"
 )
 
+# Plot processing time
 time_metrics = metrics_df.dropna(subset=["processing_time"]).sort_values(
     "startTimeStampMs"
 )
@@ -108,7 +111,7 @@ sns.lineplot(
     x=range(len(prob_metrics)), y="processing_time", data=prob_metrics, color="grey"
 )
 
-# This shows how the model accuracy drops over time.
+# Plot model accuracy drift over the simulated time period
 agg_metrics = metrics_df.dropna(subset=["metrics.accuracy"]).sort_values(
     "startTimeStampMs"
 )
