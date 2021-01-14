@@ -12,14 +12,14 @@ The project is organized with the following folder structure:
 ```
 .
 ├── README.md
+├── code/              # Backend scripts, and notebooks needed to create project artifacts
+├── flask/             # Assets needed to support the front end application
+├── images/            # A collection of images referenced in project docs
+├── models/            # Directory to hold trained models
+├── raw/               # The raw data file used within the project
 ├── cdsw-build.sh      # Shell script used to build environment for experiments and models
-├── code               # Backend scripts, and notebooks needed to create project artifacts
-├── flask              # Assets needed to support the front end application
-├── images             # A collection of images referenced in project docs
 ├── lineage.yml        # Configures Apache Atlas integration for model governance
-├── model_metrics.db
-├── models             # Directory to hold trained models
-├── raw                # The raw data file used within the project
+├── model_metrics.db   # SQL lite database used to store model drift metrics
 └── requirements.txt
 ```
 
