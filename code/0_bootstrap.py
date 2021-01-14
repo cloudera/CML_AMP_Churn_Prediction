@@ -99,3 +99,16 @@ except RuntimeError as error:
         "Could not interact with external data store so local project storage will be used. HDFS DFS command failed with the following error:"
     )
     print(error)
+
+# Create the YAML file for tracking model lineage
+yaml_text = \
+    f"""Churn Model API Endpoint":
+        hive_table_qualified_names:                  # this is a predefined key to link to training data
+            - "{HIVE_DATABASE}.{HIVE_TABLE}@cm"      # the qualifiedName of the hive_table object representing                
+        metadata:                                    # this is a predefined key for additional metadata
+            query: "select * from historical_data"   # suggested use case: query used to extract training data
+            training_file: "code/4_train_models.py"  # suggested use case: training file used
+    """
+
+with open('lineage.yml', 'w') as lineage:
+    lineage.write(yaml_text)
