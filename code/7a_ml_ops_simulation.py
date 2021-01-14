@@ -105,35 +105,71 @@ from sklearn.metrics import classification_report
 from cmlbootstrap import CMLBootstrap
 import seaborn as sns
 import copy
+from pyspark.sql import SparkSession
+from pyspark.sql.types import *
 
 
 hive_database = os.environ["HIVE_DATABASE"]
 hive_table = os.environ["HIVE_TABLE"]
 hive_table_fq = hive_database + "." + hive_table
 
-## Set the model ID
-# Get the model id from the model you deployed in step 5. These are unique to each
-# model on CML.
-model_id = "76"
-
-# Grab the data from Hive.
-from pyspark.sql import SparkSession
-from pyspark.sql.types import *
-
+# read data into a Spark DataFrame
 spark = SparkSession.builder.appName("PythonSQL").master("local[*]").getOrCreate()
 
-df = spark.sql("SELECT * FROM " + hive_table_fq).toPandas()
+if os.environ["STORAGE_MODE"] == "external":
+    telco_data_raw = spark.sql("SELECT * FROM " + hive_table_fq)
+else:
+    path = "/home/cdsw/raw/WA_Fn-UseC_-Telco-Customer-Churn-.csv"
+    schema = StructType(
+        [
+            StructField("customerID", StringType(), True),
+            StructField("gender", StringType(), True),
+            StructField("SeniorCitizen", StringType(), True),
+            StructField("Partner", StringType(), True),
+            StructField("Dependents", StringType(), True),
+            StructField("tenure", DoubleType(), True),
+            StructField("PhoneService", StringType(), True),
+            StructField("MultipleLines", StringType(), True),
+            StructField("InternetService", StringType(), True),
+            StructField("OnlineSecurity", StringType(), True),
+            StructField("OnlineBackup", StringType(), True),
+            StructField("DeviceProtection", StringType(), True),
+            StructField("TechSupport", StringType(), True),
+            StructField("StreamingTV", StringType(), True),
+            StructField("StreamingMovies", StringType(), True),
+            StructField("Contract", StringType(), True),
+            StructField("PaperlessBilling", StringType(), True),
+            StructField("PaymentMethod", StringType(), True),
+            StructField("MonthlyCharges", DoubleType(), True),
+            StructField("TotalCharges", DoubleType(), True),
+            StructField("Churn", StringType(), True),
+        ]
+    )
+    telco_data_raw = spark.read.csv(
+        path, header=True, sep=",", schema=schema, nullValue="NA"
+    )
+
+df = telco_data_raw.toPandas()
 
 # Get the various Model CRN details
 HOST = os.getenv("CDSW_API_URL").split(":")[0] + "://" + os.getenv("CDSW_DOMAIN")
-USERNAME = os.getenv("CDSW_PROJECT_URL").split("/")[6]  # args.username  # "vdibia"
+USERNAME = os.getenv("CDSW_PROJECT_URL").split("/")[6]
 API_KEY = os.getenv("CDSW_API_KEY")
 PROJECT_NAME = os.getenv("CDSW_PROJECT")
 
 cml = CMLBootstrap(HOST, USERNAME, API_KEY, PROJECT_NAME)
 
+# Get newly deployed churn model details using cmlbootstrapAPI
+models = cml.get_models({})
+churn_model_details = [
+    model for model in models if model["name"] == "Churn Model API Endpoint"
+][0]
 latest_model = cml.get_model(
-    {"id": model_id, "latestModelDeployment": True, "latestModelBuild": True}
+    {
+        "id": churn_model_details["id"],
+        "latestModelDeployment": True,
+        "latestModelBuild": True,
+    }
 )
 
 Model_CRN = latest_model["crn"]
@@ -165,7 +201,7 @@ df_sample_clean = (
 # Create an array of model responses.
 response_labels_sample = []
 
-# Make 1000 calls to the model with increasing error
+# Run Similation to make 1000 calls to the model with increasing error
 percent_counter = 0
 percent_max = len(df_sample_clean)
 
