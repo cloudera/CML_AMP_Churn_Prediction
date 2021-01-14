@@ -103,11 +103,11 @@ except RuntimeError as error:
 # Create the YAML file for tracking model lineage
 yaml_text = \
     f"""Churn Model API Endpoint":
-        hive_table_qualified_names:                  # this is a predefined key to link to training data
-            - "{HIVE_DATABASE}.{HIVE_TABLE}@cm"      # the qualifiedName of the hive_table object representing                
-        metadata:                                    # this is a predefined key for additional metadata
-            query: "select * from historical_data"   # suggested use case: query used to extract training data
-            training_file: "code/4_train_models.py"  # suggested use case: training file used
+        hive_table_qualified_names:                                             # this is a predefined key to link to training data
+            - "{os.environ["HIVE_DATABASE"]}.{os.environ["HIVE_TABLE"]}@cm"     # the qualifiedName of the hive_table object representing                
+        metadata:                                                               # this is a predefined key for additional metadata
+            query: "select * from historical_data"                              # suggested use case: query used to extract training data
+            training_file: "code/4_train_models.py"                             # suggested use case: training file used
     """
 
 with open('lineage.yml', 'w') as lineage:
