@@ -1,8 +1,47 @@
+# ###########################################################################
+#
+#  CLOUDERA APPLIED MACHINE LEARNING PROTOTYPE (AMP)
+#  (C) Cloudera, Inc. 2021
+#  All rights reserved.
+#
+#  Applicable Open Source License: Apache 2.0
+#
+#  NOTE: Cloudera open source products are modular software products
+#  made up of hundreds of individual components, each of which was
+#  individually copyrighted.  Each Cloudera open source product is a
+#  collective work under U.S. Copyright Law. Your license to use the
+#  collective work is as provided in your written agreement with
+#  Cloudera.  Used apart from the collective work, this file is
+#  licensed for your use pursuant to the open source license
+#  identified above.
+#
+#  This code is provided to you pursuant a written agreement with
+#  (i) Cloudera, Inc. or (ii) a third-party authorized to distribute
+#  this code. If you do not have a written agreement with Cloudera nor
+#  with an authorized and properly licensed third party, you do not
+#  have any rights to access nor to use this code.
+#
+#  Absent a written agreement with Cloudera, Inc. (“Cloudera”) to the
+#  contrary, A) CLOUDERA PROVIDES THIS CODE TO YOU WITHOUT WARRANTIES OF ANY
+#  KIND; (B) CLOUDERA DISCLAIMS ANY AND ALL EXPRESS AND IMPLIED
+#  WARRANTIES WITH RESPECT TO THIS CODE, INCLUDING BUT NOT LIMITED TO
+#  IMPLIED WARRANTIES OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY AND
+#  FITNESS FOR A PARTICULAR PURPOSE; (C) CLOUDERA IS NOT LIABLE TO YOU,
+#  AND WILL NOT DEFEND, INDEMNIFY, NOR HOLD YOU HARMLESS FOR ANY CLAIMS
+#  ARISING FROM OR RELATED TO THE CODE; AND (D)WITH RESPECT TO YOUR EXERCISE
+#  OF ANY RIGHTS GRANTED TO YOU FOR THE CODE, CLOUDERA IS NOT LIABLE FOR ANY
+#  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, PUNITIVE OR
+#  CONSEQUENTIAL DAMAGES INCLUDING, BUT NOT LIMITED TO, DAMAGES
+#  RELATED TO LOST REVENUE, LOST PROFITS, LOSS OF INCOME, LOSS OF
+#  BUSINESS ADVANTAGE OR UNAVAILABILITY, OR LOSS OR CORRUPTION OF
+#  DATA.
+#
+# ###########################################################################
+
 # Part 4: Model Training
 
-# This script is used to train an Explained model and also how to use the
-# Jobs to run model training and the Experiments feature of CML to facilitate model
-# tuning.
+# This script is used to train an Explained model using the Jobs feature
+# in CML and the Experiments feature to facilitate model tuning
 
 # If you haven't yet, run through the initialization steps in the README file and Part 1.
 # In Part 1, the data is imported into the table you specified in Hive.
@@ -86,7 +125,6 @@ from pyspark.sql.types import *
 from pyspark.sql import SparkSession
 import sys
 import os
-import os
 import datetime
 import subprocess
 import glob
@@ -94,7 +132,6 @@ import dill
 import pandas as pd
 import numpy as np
 import cdsw
-
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
@@ -103,66 +140,63 @@ from sklearn.linear_model import LogisticRegressionCV
 from sklearn.pipeline import TransformerMixin
 from sklearn.preprocessing import LabelEncoder
 from sklearn.compose import ColumnTransformer
-
 from lime.lime_tabular import LimeTabularExplainer
 
+os.chdir("code")
 from churnexplainer import ExplainedModel, CategoricalEncoder
 
-hive_database = os.environ['HIVE_DATABASE']
-hive_table = os.environ['HIVE_TABLE']
-hive_table_fq = hive_database + '.' + hive_table
+hive_database = os.environ["HIVE_DATABASE"]
+hive_table = os.environ["HIVE_TABLE"]
+hive_table_fq = hive_database + "." + hive_table
 
-data_dir = '/home/cdsw'
+data_dir = "/home/cdsw"
 
-idcol = 'customerID'
-labelcol = 'Churn'
-cols = (('gender', True),
-        ('SeniorCitizen', True),
-        ('Partner', True),
-        ('Dependents', True),
-        ('tenure', False),
-        ('PhoneService', True),
-        ('MultipleLines', True),
-        ('InternetService', True),
-        ('OnlineSecurity', True),
-        ('OnlineBackup', True),
-        ('DeviceProtection', True),
-        ('TechSupport', True),
-        ('StreamingTV', True),
-        ('StreamingMovies', True),
-        ('Contract', True),
-        ('PaperlessBilling', True),
-        ('PaymentMethod', True),
-        ('MonthlyCharges', False),
-        ('TotalCharges', False))
+idcol = "customerID"
+labelcol = "Churn"
+cols = (
+    ("gender", True),
+    ("SeniorCitizen", True),
+    ("Partner", True),
+    ("Dependents", True),
+    ("tenure", False),
+    ("PhoneService", True),
+    ("MultipleLines", True),
+    ("InternetService", True),
+    ("OnlineSecurity", True),
+    ("OnlineBackup", True),
+    ("DeviceProtection", True),
+    ("TechSupport", True),
+    ("StreamingTV", True),
+    ("StreamingMovies", True),
+    ("Contract", True),
+    ("PaperlessBilling", True),
+    ("PaymentMethod", True),
+    ("MonthlyCharges", False),
+    ("TotalCharges", False),
+)
 
 
 # This is a fail safe incase the hive table did not get created in the last step.
 try:
-    spark = SparkSession\
-        .builder\
-        .appName("PythonSQL")\
-        .master("local[*]")\
-        .getOrCreate()
+    spark = SparkSession.builder.appName("PythonSQL").master("local[*]").getOrCreate()
 
-    if (spark.sql("SELECT count(*) FROM " + hive_table_fq).collect()[0][0] > 0):
+    if spark.sql("SELECT count(*) FROM " + hive_table_fq).collect()[0][0] > 0:
         df = spark.sql("SELECT * FROM " + hive_table_fq).toPandas()
 except:
     print("Hive table has not been created")
-    df = pd.read_csv(os.path.join(
-        'raw', 'WA_Fn-UseC_-Telco-Customer-Churn-.csv'))
+    df = pd.read_csv(os.path.join("../raw", "WA_Fn-UseC_-Telco-Customer-Churn-.csv"))
 
 # Clean and shape the data from lr and LIME
-df = df.replace(r'^\s$', np.nan, regex=True).dropna().reset_index()
-df.index.name = 'id'
+df = df.replace(r"^\s$", np.nan, regex=True).dropna().reset_index()
+df.index.name = "id"
 data, labels = df.drop(labelcol, axis=1), df[labelcol]
-data = data.replace({'SeniorCitizen': {1: 'Yes', 0: 'No'}})
+data = data.replace({"SeniorCitizen": {1: "Yes", 0: "No"}})
 # This is Mike's lovely short hand syntax for looping through data and doing useful things. I think if we started to pay him by the ASCII char, we'd get more readable code.
 data = data[[c for c, _ in cols]]
 catcols = (c for c, iscat in cols if iscat)
 for col in catcols:
     data[col] = pd.Categorical(data[col])
-labels = (labels == 'Yes')
+labels = labels == "Yes"
 
 # Prepare the pipeline and split the data for model training
 ce = CategoricalEncoder()
@@ -170,14 +204,13 @@ X = ce.fit_transform(data)
 y = labels.values
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
 ct = ColumnTransformer(
-    [('ohe', OneHotEncoder(), list(ce.cat_columns_ix_.values()))],
-    remainder='passthrough'
+    [("ohe", OneHotEncoder(), list(ce.cat_columns_ix_.values()))],
+    remainder="passthrough",
 )
 
 # Experiments options
 # If you are running this as an experiment, pass the cv, solver and max_iter values
 # as arguments in that order. e.g. `5 lbfgs 100`.
-
 if len(sys.argv) == 4:
     try:
         cv = int(sys.argv[1])
@@ -187,13 +220,11 @@ if len(sys.argv) == 4:
         sys.exit("Invalid Arguments passed to Experiment")
 else:
     cv = 5
-    solver = 'lbfgs'  # one of newton-cg, lbfgs, liblinear, sag, saga
+    solver = "lbfgs"  # one of newton-cg, lbfgs, liblinear, sag, saga
     max_iter = 100
 
 clf = LogisticRegressionCV(cv=cv, solver=solver, max_iter=max_iter)
-pipe = Pipeline([('ct', ct),
-                 ('scaler', StandardScaler()),
-                 ('clf', clf)])
+pipe = Pipeline([("ct", ct), ("scaler", StandardScaler()), ("clf", clf)])
 
 # The magical model.fit()
 pipe.fit(X_train, y_train)
@@ -202,26 +233,33 @@ test_score = pipe.score(X_test, y_test)
 print("train", train_score)
 print("test", test_score)
 print(classification_report(y_test, pipe.predict(X_test)))
-data[labels.name + ' probability'] = pipe.predict_proba(X)[:, 1]
+data[labels.name + " probability"] = pipe.predict_proba(X)[:, 1]
 
 
 # Create LIME Explainer
 feature_names = list(ce.columns_)
 categorical_features = list(ce.cat_columns_ix_.values())
-categorical_names = {i: ce.classes_[c]
-                     for c, i in ce.cat_columns_ix_.items()}
-class_names = ['No ' + labels.name, labels.name]
-explainer = LimeTabularExplainer(ce.transform(data),
-                                 feature_names=feature_names,
-                                 class_names=class_names,
-                                 categorical_features=categorical_features,
-                                 categorical_names=categorical_names)
+categorical_names = {i: ce.classes_[c] for c, i in ce.cat_columns_ix_.items()}
+class_names = ["No " + labels.name, labels.name]
+explainer = LimeTabularExplainer(
+    ce.transform(data),
+    feature_names=feature_names,
+    class_names=class_names,
+    categorical_features=categorical_features,
+    categorical_names=categorical_names,
+)
 
 
 # Create and save the combined Logistic Regression and LIME Explained Model.
-explainedmodel = ExplainedModel(data=data, labels=labels, model_name='telco_linear',
-                                categoricalencoder=ce, pipeline=pipe,
-                                explainer=explainer, data_dir=data_dir)
+explainedmodel = ExplainedModel(
+    data=data,
+    labels=labels,
+    model_name="telco_linear",
+    categoricalencoder=ce,
+    pipeline=pipe,
+    explainer=explainer,
+    data_dir=data_dir,
+)
 explainedmodel.save()
 
 

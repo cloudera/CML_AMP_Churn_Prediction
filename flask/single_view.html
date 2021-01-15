@@ -1,3 +1,45 @@
+<!--
+* ****************************************************************************
+*
+* CLOUDERA APPLIED MACHINE LEARNING PROTOTYPE (AMP)
+* (C) Cloudera, Inc. 2021
+* All rights reserved.
+*
+* Applicable Open Source License: Apache 2.0
+*
+* NOTE: Cloudera open source products are modular software products
+* made up of hundreds of individual components, each of which was
+* individually copyrighted. Each Cloudera open source product is a
+* collective work under U.S. Copyright Law. Your license to use the
+* collective work is as provided in your written agreement with
+* Cloudera. Used apart from the collective work, this file is
+* licensed for your use pursuant to the open source license
+* identified above.
+*
+* This code is provided to you pursuant a written agreement with
+* (i) Cloudera, Inc. or (ii) a third-party authorized to distribute
+* this code. If you do not have a written agreement with Cloudera nor
+* with an authorized and properly licensed third party, you do not
+* have any rights to access nor to use this code.
+*
+* Absent a written agreement with Cloudera, Inc. (“Cloudera”) to the
+* contrary, A) CLOUDERA PROVIDES THIS CODE TO YOU WITHOUT WARRANTIES OF ANY
+* KIND; (B) CLOUDERA DISCLAIMS ANY AND ALL EXPRESS AND IMPLIED
+* WARRANTIES WITH RESPECT TO THIS CODE, INCLUDING BUT NOT LIMITED TO
+* IMPLIED WARRANTIES OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY AND
+* FITNESS FOR A PARTICULAR PURPOSE; (C) CLOUDERA IS NOT LIABLE TO YOU,
+* AND WILL NOT DEFEND, INDEMNIFY, NOR HOLD YOU HARMLESS FOR ANY CLAIMS
+* ARISING FROM OR RELATED TO THE CODE; AND (D)WITH RESPECT TO YOUR EXERCISE
+* OF ANY RIGHTS GRANTED TO YOU FOR THE CODE, CLOUDERA IS NOT LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, PUNITIVE OR
+* CONSEQUENTIAL DAMAGES INCLUDING, BUT NOT LIMITED TO, DAMAGES
+* RELATED TO LOST REVENUE, LOST PROFITS, LOSS OF INCOME, LOSS OF
+* BUSINESS ADVANTAGE OR UNAVAILABILITY, OR LOSS OR CORRUPTION OF
+* DATA.
+*
+* ***************************************************************************
+-->
+
 <!DOCTYPE html>
 
 <head>
@@ -31,27 +73,27 @@
         var features_categorical = d3.json('/categories').then(json => {
             return json
         });
-        
+
         const prob_color = d3.scaleQuantize()
-                    .domain([-0.3,0.3])
-                    .range([
-                        '#4393c3', '#92c5de', '#d1e5f0', '#f7f7f7', '#fddbc7', '#f4a582', '#d6604d'
-                    ]);
+            .domain([-0.3, 0.3])
+            .range([
+                '#4393c3', '#92c5de', '#d1e5f0', '#f7f7f7', '#fddbc7', '#f4a582', '#d6604d'
+            ]);
         const color = d3.scaleQuantize()
-                    .domain([0,1])
-                    .range([
-                        '#4393c3', '#92c5de', '#d1e5f0', '#f7f7f7', '#fddbc7', '#f4a582', '#d6604d'
-                    ]);
+            .domain([0, 1])
+            .range([
+                '#4393c3', '#92c5de', '#d1e5f0', '#f7f7f7', '#fddbc7', '#f4a582', '#d6604d'
+            ]);
         var dataset = d3.json(
-                //window.location.origin.substr(0,window.location.origin.indexOf(":")+1) + "//" + window.location.origin.substr(window.location.origin.indexOf(".")+1) + '/api/altus-ds-1/models/call-model', {
-                window.location.origin.substr(0,window.location.origin.indexOf(":")+1) + "//" + "modelservice." + window.location.origin.substr(window.location.origin.indexOf(".")+1) + '/model', {
-                method: 'POST',
-                body: '{"accessKey":"' + accessKey + '","request":' + JSON.stringify(params) +
-                    '}',
-                headers: {
-                    'Content-type': 'application/json'
-                }
-            })
+            //window.location.origin.substr(0,window.location.origin.indexOf(":")+1) + "//" + window.location.origin.substr(window.location.origin.indexOf(".")+1) + '/api/altus-ds-1/models/call-model', {
+            window.location.origin.substr(0, window.location.origin.indexOf(":") + 1) + "//" + "modelservice." + window.location.origin.substr(window.location.origin.indexOf(".") + 1) + '/model', {
+            method: 'POST',
+            body: '{"accessKey":"' + accessKey + '","request":' + JSON.stringify(params) +
+                '}',
+            headers: {
+                'Content-type': 'application/json'
+            }
+        })
             .then(json => {
                 return json
             });
@@ -80,7 +122,7 @@
 
             var prediction_value = d3.select("#pred_value")
                 .text(values[2].response.prediction.probability.toFixed(3))
-                .attr("style","background:" + color(values[2].response.prediction.probability) +";padding:10px;");
+                .attr("style", "background:" + color(values[2].response.prediction.probability) + ";padding:10px;");
 
             var main_divs = d3.select("#features").selectAll(".main_div")
                 .data(merged_data)
@@ -138,12 +180,12 @@
                     } else if (i === 1) {
                         return "width:100px;border: 1px solid #fff; background:#eee;";
                     } else if (i === 2) {
-                      if (f.explanation !== undefined) {
-                        return "width:30px;background:" + prob_color(f.explanation) + ";";
-                      } else {
-                        return "width:30px;";
-                      }
-                      
+                        if (f.explanation !== undefined) {
+                            return "width:30px;background:" + prob_color(f.explanation) + ";";
+                        } else {
+                            return "width:30px;";
+                        }
+
                     } else {
                         if (!isNaN(parseInt(f.key))) {
                             return "cursor: pointer; border: 1px solid #ccc; background:#ddd;"
@@ -154,13 +196,13 @@
                 })
 
             main_divs.insert("div").html(function (d) {
-                    if (d[3].key === "0") {
-                        return ""
-                    } else {
-                        return "<input type='text'>"
-                    }
+                if (d[3].key === "0") {
+                    return ""
+                } else {
+                    return "<input type='text'>"
+                }
 
-                }).attr("class", "input_div")
+            }).attr("class", "input_div")
                 .append("div")
                 .attr("class", "submit_div")
                 .html(function (d) {
@@ -171,13 +213,13 @@
                     }
                 })
                 .on("click", function (d) {
-                        local_url = new URL(out_url)
-                        if (!isNaN(parseInt(d3.select(this.parentNode).select("input").property("value")))) {
-                            local_url.searchParams.set(this.parentNode.parentNode.id, d3.select(this.parentNode)
-                                .select("input").property("value"))
-                            return window.location = local_url.href;
-                        }
+                    local_url = new URL(out_url)
+                    if (!isNaN(parseInt(d3.select(this.parentNode).select("input").property("value")))) {
+                        local_url.searchParams.set(this.parentNode.parentNode.id, d3.select(this.parentNode)
+                            .select("input").property("value"))
+                        return window.location = local_url.href;
                     }
+                }
 
                 )
         }).catch(err => alert("Unable to connect to the model. Please check the model is running and that you have updated the model access key."));

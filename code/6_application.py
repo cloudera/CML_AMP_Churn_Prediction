@@ -1,3 +1,43 @@
+# ###########################################################################
+#
+#  CLOUDERA APPLIED MACHINE LEARNING PROTOTYPE (AMP)
+#  (C) Cloudera, Inc. 2021
+#  All rights reserved.
+#
+#  Applicable Open Source License: Apache 2.0
+#
+#  NOTE: Cloudera open source products are modular software products
+#  made up of hundreds of individual components, each of which was
+#  individually copyrighted.  Each Cloudera open source product is a
+#  collective work under U.S. Copyright Law. Your license to use the
+#  collective work is as provided in your written agreement with
+#  Cloudera.  Used apart from the collective work, this file is
+#  licensed for your use pursuant to the open source license
+#  identified above.
+#
+#  This code is provided to you pursuant a written agreement with
+#  (i) Cloudera, Inc. or (ii) a third-party authorized to distribute
+#  this code. If you do not have a written agreement with Cloudera nor
+#  with an authorized and properly licensed third party, you do not
+#  have any rights to access nor to use this code.
+#
+#  Absent a written agreement with Cloudera, Inc. (“Cloudera”) to the
+#  contrary, A) CLOUDERA PROVIDES THIS CODE TO YOU WITHOUT WARRANTIES OF ANY
+#  KIND; (B) CLOUDERA DISCLAIMS ANY AND ALL EXPRESS AND IMPLIED
+#  WARRANTIES WITH RESPECT TO THIS CODE, INCLUDING BUT NOT LIMITED TO
+#  IMPLIED WARRANTIES OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY AND
+#  FITNESS FOR A PARTICULAR PURPOSE; (C) CLOUDERA IS NOT LIABLE TO YOU,
+#  AND WILL NOT DEFEND, INDEMNIFY, NOR HOLD YOU HARMLESS FOR ANY CLAIMS
+#  ARISING FROM OR RELATED TO THE CODE; AND (D)WITH RESPECT TO YOUR EXERCISE
+#  OF ANY RIGHTS GRANTED TO YOU FOR THE CODE, CLOUDERA IS NOT LIABLE FOR ANY
+#  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, PUNITIVE OR
+#  CONSEQUENTIAL DAMAGES INCLUDING, BUT NOT LIMITED TO, DAMAGES
+#  RELATED TO LOST REVENUE, LOST PROFITS, LOSS OF INCOME, LOSS OF
+#  BUSINESS ADVANTAGE OR UNAVAILABILITY, OR LOSS OR CORRUPTION OF
+#  DATA.
+#
+# ###########################################################################
+
 # Part 6: Application
 
 # This script explains how to create and deploy Applications in CML.
@@ -45,7 +85,7 @@
 # Session) in order to edit a file. Select the `flask/single_view.html` file and paste the Access
 # Key in at line 19.
 #
-# `        const accessKey = "mp3ebluylxh4yn5h9xurh1r0430y76ca";`
+# `        const accessKey = "<your_access_key_here>";`
 #
 # Save the file (if it has not auto saved already) and go back to the Project.
 #
@@ -81,13 +121,16 @@ from flask import Flask, send_from_directory, request
 from IPython.display import Javascript, HTML
 import random
 import os
-from churnexplainer import ExplainedModel
 from collections import ChainMap
 from flask import Flask
 from pandas.io.json import dumps as jsonify
 import logging
 import subprocess
 from IPython.display import Image
+
+os.chdir("code")
+from churnexplainer import ExplainedModel
+
 Image("images/table_view.png")
 #
 # Clicking on any row will show a "local" interpreted model for that particular customer.
@@ -113,60 +156,64 @@ Image("images/single_view_2.png")
 
 
 # This reduces the the output to the console window
-log = logging.getLogger('werkzeug')
+log = logging.getLogger("werkzeug")
 log.setLevel(logging.ERROR)
 
 # Since we have access in an environment variable, we want to write it to our UI
 # Change the line in the flask/single_view.html file.
-if os.environ.get('SHTM_ACCESS_KEY') != None:
-  access_key = os.environ.get('SHTM_ACCESS_KEY', "")
-  subprocess.call(["sed", "-i",  's/const\saccessKey.*/const accessKey = "' +
-                   access_key + '";/', "/home/cdsw/flask/single_view.html"])
+if os.environ.get("SHTM_ACCESS_KEY") != None:
+    access_key = os.environ.get("SHTM_ACCESS_KEY", "")
+    subprocess.call(
+        [
+            "sed",
+            "-i",
+            's/const\saccessKey.*/const accessKey = "' + access_key + '";/',
+            "/home/cdsw/flask/single_view.html",
+        ]
+    )
 
 
 # Load the explained model
-em = ExplainedModel(model_name='telco_linear', data_dir='/home/cdsw')
+em = ExplainedModel(model_name="telco_linear", data_dir="/home/cdsw")
 
 # Creates an explained version of a partiuclar data point. This is almost exactly the same as the data used in the model serving code.
-
-
 def explainid(N):
     customer_data = dataid(N)[0]
-    customer_data.pop('id')
-    customer_data.pop('Churn probability')
+    customer_data.pop("id")
+    customer_data.pop("Churn probability")
     data = em.cast_dct(customer_data)
     probability, explanation = em.explain_dct(data)
-    return {'data': dict(data),
-            'probability': probability,
-            'explanation': explanation,
-            'id': int(N)}
+    return {
+        "data": dict(data),
+        "probability": probability,
+        "explanation": explanation,
+        "id": int(N),
+    }
+
 
 # Gets the rest of the row data for a particular customer.
-
-
 def dataid(N):
     customer_id = em.data.index.dtype.type(N)
     customer_df = em.data.loc[[customer_id]].reset_index()
-    return customer_df.to_dict(orient='records')
+    return customer_df.to_dict(orient="records")
 
 
 # Flask doing flasky things
-flask_app = Flask(__name__, static_url_path='')
+flask_app = Flask(__name__, static_folder="../flask")
 
 
-@flask_app.route('/')
+@flask_app.route("/")
 def home():
     return "<script> window.location.href = '/flask/table_view.html'</script>"
 
 
-@flask_app.route('/flask/<path:path>')
+@flask_app.route("/flask/<path:path>")
 def send_file(path):
-    return send_from_directory('flask', path)
+    return send_from_directory("flask", path)
+
 
 # Grabs a sample explained dataset for 10 randomly selected customers.
-
-
-@flask_app.route('/sample_table')
+@flask_app.route("/sample_table")
 def sample_table():
     sample_ids = random.sample(range(1, len(em.data)), 10)
     sample_table = []
@@ -174,26 +221,28 @@ def sample_table():
         sample_table.append(explainid(str(ids)))
     return jsonify(sample_table)
 
+
 # Shows the names and all the catagories of the categorical variables.
-
-
 @flask_app.route("/categories")
 def categories():
-    return jsonify({feat: dict(enumerate(cats))
-                    for feat, cats in em.categories.items()})
+    return jsonify(
+        {feat: dict(enumerate(cats)) for feat, cats in em.categories.items()}
+    )
+
 
 # Shows the names and all the statistical variations of the numerica variables.
-
-
 @flask_app.route("/stats")
 def stats():
     return jsonify(em.stats)
 
 
 # A handy way to get the link if you are running in a session.
-HTML("<a href='https://{}.{}'>Open Table View</a>".format(
-    os.environ['CDSW_ENGINE_ID'], os.environ['CDSW_DOMAIN']))
+HTML(
+    "<a href='https://{}.{}'>Open Table View</a>".format(
+        os.environ["CDSW_ENGINE_ID"], os.environ["CDSW_DOMAIN"]
+    )
+)
 
 # Launches flask. Note the host and port details. This is specific to CML/CDSW
 if __name__ == "__main__":
-    flask_app.run(host='127.0.0.1', port=int(os.environ['CDSW_APP_PORT']))
+    flask_app.run(host="127.0.0.1", port=int(os.environ["CDSW_APP_PORT"]))

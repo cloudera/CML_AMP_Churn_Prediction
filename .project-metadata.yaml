@@ -1,6 +1,6 @@
 name: ML Churn Prototype
 description: Prototype to demonstrate building a churn model on CML
-author: Cloudera Engineer
+author: Cloudera Inc.
 specification_version: 1.0
 prototype_version: 1.0
 date: "2020-09-29"
@@ -27,67 +27,83 @@ tasks:
   - type: create_job
     name: Install dependencies
     entity_label: install_deps
-    script: 0_bootstrap.py
+    script: code/0_bootstrap.py
     arguments: None
-    short_summary: Job to install dependencies and download training data.
+    short_summary:  >-
+      Job to install dependencies, set environment variables, and upload data
     kernel: python3
 
   - type: run_job
     entity_label: install_deps
-    short_summary: Running install dependencies training job.
-    long_summary: >-
-      Running the job to install dependencies.
+    short_summary: Running job to install dependencies
 
   - type: create_job
     name: Ingest data
     entity_label: ingest_data
-    script: 1_data_ingest.py
+    script: code/1_data_ingest.py
     arguments: None
-    short_summary: Job to ingest data into our Hive table.
+    short_summary: Job to ingest data into our Hive table
     kernel: python3
 
   - type: run_job
     entity_label: ingest_data
-    short_summary: Running ingest data job.
-    long_summary: >-
-      Running the job to ingest data.
+    short_summary: Running job to ingest data
 
   - type: create_job
     name: Train Churn Model
     entity_label: train_model
-    script: 4_train_models.py
+    script: code/4_train_models.py
     arguments: None
-    short_summary: Job to train models.
+    short_summary: Job to train models
     kernel: python3
 
   - type: run_job
     entity_label: train_model
-    short_summary: Run model training job.
+    short_summary: Run model training job
     long_summary: >-
-      Running the job to train models.
+      Running the job to train models
 
   - type: create_model
-    name: Create Churn Model API Endpoint
+    name: Churn Model API Endpoint
     entity_label: telco_churn_model
-    description: This model api endpoint predicts churn
+    description: This model API endpoint is used to predict churn
     short_summary: Create the churn model prediction api endpoint
     access_key_environment_variable: SHTM_ACCESS_KEY
-    # default_resources:
-    #   cpu: 1
-    #   memory: 2
+    default_resources:
+      cpu: 1
+      memory: 2
     default_replication_policy:
       type: fixed
       num_replicas: 1
 
-    # auth_enabled: false
   - type: build_model
     name: Build Telco Churn Model Endpoint
     entity_label: telco_churn_model
     comment: Build churn model
     examples:
-      - request: {"StreamingTV":"No","MonthlyCharges":70.35,"PhoneService":"No","PaperlessBilling":"No","Partner":"No","OnlineBackup":"No","gender":"Female","Contract":"Month-to-month","TotalCharges":1397.475,"StreamingMovies":"No","DeviceProtection":"No","PaymentMethod":"Bank transfer (automatic)","tenure":29,"Dependents":"No","OnlineSecurity":"No","MultipleLines":"No","InternetService":"DSL","SeniorCitizen":"No","TechSupport":"No"}
+      - request: {
+                    "StreamingTV": "No",
+                    "MonthlyCharges": 70.35,
+                    "PhoneService": "No",
+                    "PaperlessBilling": "No",
+                    "Partner": "No",
+                    "OnlineBackup": "No",
+                    "gender": "Female",
+                    "Contract": "Month-to-month",
+                    "TotalCharges": 1397.475,
+                    "StreamingMovies": "No",
+                    "DeviceProtection": "No",
+                    "PaymentMethod": "Bank transfer (automatic)",
+                    "tenure": 29,
+                    "Dependents": "No",
+                    "OnlineSecurity": "No",
+                    "MultipleLines": "No",
+                    "InternetService": "DSL",
+                    "SeniorCitizen": "No",
+                    "TechSupport": "No",
+                }
         response: ""
-    target_file_path: 5_model_serve_explainer.py
+    target_file_path: code/5_model_serve_explainer.py
     target_function_name: explain
     kernel: python3
 
@@ -98,7 +114,7 @@ tasks:
     gpu: 0
 
   - type: start_application
-    name: Application to serve Churn  front app UI
+    name: Application to Serve Churn UI
     subdomain: churn
-    script: 6_application.py
+    script: code/6_application.py
     kernel: python3

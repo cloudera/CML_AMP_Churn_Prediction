@@ -1,3 +1,43 @@
+# ###########################################################################
+#
+#  CLOUDERA APPLIED MACHINE LEARNING PROTOTYPE (AMP)
+#  (C) Cloudera, Inc. 2021
+#  All rights reserved.
+#
+#  Applicable Open Source License: Apache 2.0
+#
+#  NOTE: Cloudera open source products are modular software products
+#  made up of hundreds of individual components, each of which was
+#  individually copyrighted.  Each Cloudera open source product is a
+#  collective work under U.S. Copyright Law. Your license to use the
+#  collective work is as provided in your written agreement with
+#  Cloudera.  Used apart from the collective work, this file is
+#  licensed for your use pursuant to the open source license
+#  identified above.
+#
+#  This code is provided to you pursuant a written agreement with
+#  (i) Cloudera, Inc. or (ii) a third-party authorized to distribute
+#  this code. If you do not have a written agreement with Cloudera nor
+#  with an authorized and properly licensed third party, you do not
+#  have any rights to access nor to use this code.
+#
+#  Absent a written agreement with Cloudera, Inc. (“Cloudera”) to the
+#  contrary, A) CLOUDERA PROVIDES THIS CODE TO YOU WITHOUT WARRANTIES OF ANY
+#  KIND; (B) CLOUDERA DISCLAIMS ANY AND ALL EXPRESS AND IMPLIED
+#  WARRANTIES WITH RESPECT TO THIS CODE, INCLUDING BUT NOT LIMITED TO
+#  IMPLIED WARRANTIES OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY AND
+#  FITNESS FOR A PARTICULAR PURPOSE; (C) CLOUDERA IS NOT LIABLE TO YOU,
+#  AND WILL NOT DEFEND, INDEMNIFY, NOR HOLD YOU HARMLESS FOR ANY CLAIMS
+#  ARISING FROM OR RELATED TO THE CODE; AND (D)WITH RESPECT TO YOUR EXERCISE
+#  OF ANY RIGHTS GRANTED TO YOU FOR THE CODE, CLOUDERA IS NOT LIABLE FOR ANY
+#  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, PUNITIVE OR
+#  CONSEQUENTIAL DAMAGES INCLUDING, BUT NOT LIMITED TO, DAMAGES
+#  RELATED TO LOST REVENUE, LOST PROFITS, LOSS OF INCOME, LOSS OF
+#  BUSINESS ADVANTAGE OR UNAVAILABILITY, OR LOSS OR CORRUPTION OF
+#  DATA.
+#
+# ###########################################################################
+
 # Part 1: Data Ingest
 # A data scientist should never be blocked in getting data into their environment,
 # so CML is able to ingest data from many sources.
@@ -70,12 +110,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 
 
-
-spark = SparkSession\
-    .builder\
-    .appName("PythonSQL")\
-    .master("local[*]")\
-    .getOrCreate()
+spark = SparkSession.builder.appName("PythonSQL").master("local[*]").getOrCreate()
 
 # **Note:**
 # Our file isn't big, so running it in Spark local mode is fine but you can add the following config
@@ -88,7 +123,6 @@ spark = SparkSession\
 
 # Since we know the data already, we can add schema upfront. This is good practice as Spark will
 # read *all* the Data if you try infer the schema.
-
 schema = StructType(
     [
         StructField("customerID", StringType(), True),
@@ -111,64 +145,53 @@ schema = StructType(
         StructField("PaymentMethod", StringType(), True),
         StructField("MonthlyCharges", DoubleType(), True),
         StructField("TotalCharges", DoubleType(), True),
-        StructField("Churn", StringType(), True)
+        StructField("Churn", StringType(), True),
     ]
 )
 
-# Now we can read in the data from Cloud Storage into Spark...
+# Now we can read in the data into Spark
+storage = os.environ["STORAGE"]
+data_location = os.environ["DATA_LOCATION"]
+hive_database = os.environ["HIVE_DATABASE"]
+hive_table = os.environ["HIVE_TABLE"]
+hive_table_fq = hive_database + "." + hive_table
 
-storage = os.environ['STORAGE']
-data_location = os.environ['DATA_LOCATION']
-hive_database = os.environ['HIVE_DATABASE']
-hive_table = os.environ['HIVE_TABLE']
-hive_table_fq = hive_database + '.' + hive_table
+if os.environ["STORAGE_MODE"] == "external":
+    path = f"{storage}/{data_location}/WA_Fn-UseC_-Telco-Customer-Churn-.csv"
+else:
+    path = "/home/cdsw/raw/WA_Fn-UseC_-Telco-Customer-Churn-.csv"
 
-telco_data = spark.read.csv(
-    "{}/{}/WA_Fn-UseC_-Telco-Customer-Churn-.csv".format(
-        storage, data_location),
-    header=True,
-    schema=schema,
-    sep=',',
-    nullValue='NA'
-)
+telco_data = spark.read.csv(path, header=True, schema=schema, sep=",", nullValue="NA")
 
 # ...and inspect the data.
-
 telco_data.show()
 
 telco_data.printSchema()
 
 # Now we can store the Spark DataFrame as a file in the local CML file system
-# *and* as a table in Hive used by the other parts of the project.
-
+# *and* (if possible) as a table in Hive used by the other parts of the project.
 telco_data.coalesce(1).write.csv(
-    "file:/home/cdsw/raw/telco-data/",
-    mode='overwrite',
-    header=True
+    "file:/home/cdsw/raw/telco-data/", mode="overwrite", header=True
 )
 
-spark.sql("show databases").show()
+if os.environ["STORAGE_MODE"] == "external":
+    spark.sql("show databases").show()
+    spark.sql("show tables in " + hive_database).show()
 
-spark.sql("show tables in " + hive_database).show()
+    # Create the Hive table, if possible
+    # This is here to create the table in Hive used be the other parts of the project, if it
+    # does not already exist.
+    if hive_table not in list(
+        spark.sql("show tables in " + hive_database).toPandas()["tableName"]
+    ):
+        print("creating the " + hive_table + " table")
+        telco_data.write.format("parquet").mode("overwrite").saveAsTable(hive_table_fq)
 
-# Create the Hive table
-# This is here to create the table in Hive used be the other parts of the project, if it
-# does not already exist.
+        # Show the data in the hive table
+        spark.sql("select * from " + hive_table_fq).show()
 
-if (hive_table not in list(spark.sql("show tables in " + hive_database).toPandas()['tableName'])):
-    print("creating the " + hive_table + " table")
-    telco_data\
-        .write.format("parquet")\
-        .mode("overwrite")\
-        .saveAsTable(
-            hive_table_fq
-        )
-
-# Show the data in the hive table
-spark.sql("select * from " + hive_table_fq).show()
-
-# To get more detailed information about the hive table you can run this:
-spark.sql("describe formatted " + hive_table_fq).toPandas()
+        # To get more detailed information about the hive table you can run this:
+        spark.sql("describe formatted " + hive_table_fq).toPandas()
 
 # Other ways to access data
 
