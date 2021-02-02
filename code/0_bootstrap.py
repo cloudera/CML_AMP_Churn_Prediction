@@ -6,33 +6,33 @@
 #
 #  Applicable Open Source License: Apache 2.0
 #
-#  NOTE: Cloudera open source products are modular software products 
-#  made up of hundreds of individual components, each of which was 
-#  individually copyrighted.  Each Cloudera open source product is a 
-#  collective work under U.S. Copyright Law. Your license to use the 
-#  collective work is as provided in your written agreement with  
-#  Cloudera.  Used apart from the collective work, this file is 
-#  licensed for your use pursuant to the open source license 
+#  NOTE: Cloudera open source products are modular software products
+#  made up of hundreds of individual components, each of which was
+#  individually copyrighted.  Each Cloudera open source product is a
+#  collective work under U.S. Copyright Law. Your license to use the
+#  collective work is as provided in your written agreement with
+#  Cloudera.  Used apart from the collective work, this file is
+#  licensed for your use pursuant to the open source license
 #  identified above.
 #
 #  This code is provided to you pursuant a written agreement with
-#  (i) Cloudera, Inc. or (ii) a third-party authorized to distribute 
-#  this code. If you do not have a written agreement with Cloudera nor 
-#  with an authorized and properly licensed third party, you do not 
+#  (i) Cloudera, Inc. or (ii) a third-party authorized to distribute
+#  this code. If you do not have a written agreement with Cloudera nor
+#  with an authorized and properly licensed third party, you do not
 #  have any rights to access nor to use this code.
 #
 #  Absent a written agreement with Cloudera, Inc. (“Cloudera”) to the
 #  contrary, A) CLOUDERA PROVIDES THIS CODE TO YOU WITHOUT WARRANTIES OF ANY
-#  KIND; (B) CLOUDERA DISCLAIMS ANY AND ALL EXPRESS AND IMPLIED 
-#  WARRANTIES WITH RESPECT TO THIS CODE, INCLUDING BUT NOT LIMITED TO 
-#  IMPLIED WARRANTIES OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY AND 
-#  FITNESS FOR A PARTICULAR PURPOSE; (C) CLOUDERA IS NOT LIABLE TO YOU, 
-#  AND WILL NOT DEFEND, INDEMNIFY, NOR HOLD YOU HARMLESS FOR ANY CLAIMS 
-#  ARISING FROM OR RELATED TO THE CODE; AND (D)WITH RESPECT TO YOUR EXERCISE 
+#  KIND; (B) CLOUDERA DISCLAIMS ANY AND ALL EXPRESS AND IMPLIED
+#  WARRANTIES WITH RESPECT TO THIS CODE, INCLUDING BUT NOT LIMITED TO
+#  IMPLIED WARRANTIES OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY AND
+#  FITNESS FOR A PARTICULAR PURPOSE; (C) CLOUDERA IS NOT LIABLE TO YOU,
+#  AND WILL NOT DEFEND, INDEMNIFY, NOR HOLD YOU HARMLESS FOR ANY CLAIMS
+#  ARISING FROM OR RELATED TO THE CODE; AND (D)WITH RESPECT TO YOUR EXERCISE
 #  OF ANY RIGHTS GRANTED TO YOU FOR THE CODE, CLOUDERA IS NOT LIABLE FOR ANY
 #  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, PUNITIVE OR
-#  CONSEQUENTIAL DAMAGES INCLUDING, BUT NOT LIMITED TO, DAMAGES 
-#  RELATED TO LOST REVENUE, LOST PROFITS, LOSS OF INCOME, LOSS OF 
+#  CONSEQUENTIAL DAMAGES INCLUDING, BUT NOT LIMITED TO, DAMAGES
+#  RELATED TO LOST REVENUE, LOST PROFITS, LOSS OF INCOME, LOSS OF
 #  BUSINESS ADVANTAGE OR UNAVAILABILITY, OR LOSS OR CORRUPTION OF
 #  DATA.
 #
@@ -95,43 +95,47 @@ except:
     os.environ["STORAGE"] = storage
 
 # define a function to run commands on HDFS
-def run_cmd(cmd):
+def run_cmd(cmd, raise_err=True):
 
-  """
-  Run Linux commands using Python's subprocess module
+    """
+    Run Linux commands using Python's subprocess module
+    Args:
+        cmd (str) - Linux command to run
+    Returns:
+        process
+    """
+    print("Running system command: {0}".format(cmd))
 
-  Args:
-      cmd (str) - Linux command to run
+    proc = subprocess.run(
+        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    )
 
-  Returns:
-      output
-      errors
-  """
-  print("Running system command: {0}".format(cmd))
+    if proc.returncode != 0 and raise_err == True:
+        raise RuntimeError(
+            "Error running command: {}. Return code: {}, Output: {}, Error: {}".format(
+                cmd, proc.returncode, proc.stdout, proc.stderr
+            )
+        )
 
-  args_list = cmd.split(" ")
-  proc = subprocess.Popen(
-      args_list, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-  )
+    return proc
 
-  output, errors = proc.communicate()
-  if proc.returncode != 0:
-      raise RuntimeError(
-          "Error running command: {}. Return code: {}, Error: {}".format(args_list, proc.returncode, errors)
-      )
-      
-  return output, errors
 
 # Attempt to upload the data to the cloud storage, if error,
 # set environment variable indicating the use of local storage
 # for project build
 try:
-    out, err = run_cmd(
-        f'hdfs dfs -mkdir -p {os.environ["STORAGE"]}/{os.environ["DATA_LOCATION"]}'
+    dataset_check = run_cmd(
+        f'hdfs dfs -test -f {os.environ["STORAGE"]}/{os.environ["DATA_LOCATION"]}/WA_Fn-UseC_-Telco-Customer-Churn-.csv',
+        raise_err=False,
     )
-    out, err = run_cmd(
-        f'hdfs dfs -copyFromLocal /home/cdsw/raw/WA_Fn-UseC_-Telco-Customer-Churn-.csv {os.environ["STORAGE"]}/{os.environ["DATA_LOCATION"]}/WA_Fn-UseC_-Telco-Customer-Churn-.csv'
-    )
+
+    if dataset_check.returncode != 0:
+        run_cmd(
+            f'hdfs dfs -mkdir -p {os.environ["STORAGE"]}/{os.environ["DATA_LOCATION"]}'
+        )
+        run_cmd(
+            f'hdfs dfs -copyFromLocal /home/cdsw/raw/WA_Fn-UseC_-Telco-Customer-Churn-.csv {os.environ["STORAGE"]}/{os.environ["DATA_LOCATION"]}/WA_Fn-UseC_-Telco-Customer-Churn-.csv'
+        )
     cml.create_environment_variable({"STORAGE_MODE": "external"})
 except RuntimeError as error:
     cml.create_environment_variable({"STORAGE_MODE": "local"})
@@ -141,8 +145,8 @@ except RuntimeError as error:
     print(error)
 
 # Create the YAML file for tracking model lineage
-yaml_text = \
-    f"""Churn Model API Endpoint":
+# DOCS: https://docs.cloudera.com/machine-learning/cloud/model-governance/topics/ml-registering-lineage-for-model.html
+yaml_text = f"""Churn Model API Endpoint:
         hive_table_qualified_names:                                             # this is a predefined key to link to training data
             - "{os.environ["HIVE_DATABASE"]}.{os.environ["HIVE_TABLE"]}@cm"     # the qualifiedName of the hive_table object representing                
         metadata:                                                               # this is a predefined key for additional metadata
@@ -150,5 +154,5 @@ yaml_text = \
             training_file: "code/4_train_models.py"                             # suggested use case: training file used
     """
 
-with open('lineage.yml', 'w') as lineage:
+with open("lineage.yml", "w") as lineage:
     lineage.write(yaml_text)
