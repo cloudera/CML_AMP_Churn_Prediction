@@ -145,7 +145,7 @@ except RuntimeError as error:
     print(error)
 
 # Create the YAML file for tracking model lineage
-yaml_text = f"""Churn Model API Endpoint":
+yaml_text = f"""Churn Model API Endpoint:
         hive_table_qualified_names:                                             # this is a predefined key to link to training data
             - "{os.environ["HIVE_DATABASE"]}.{os.environ["HIVE_TABLE"]}@cm"     # the qualifiedName of the hive_table object representing                
         metadata:                                                               # this is a predefined key for additional metadata
