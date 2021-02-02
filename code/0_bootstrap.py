@@ -145,6 +145,7 @@ except RuntimeError as error:
     print(error)
 
 # Create the YAML file for tracking model lineage
+# DOCS: https://docs.cloudera.com/machine-learning/cloud/model-governance/topics/ml-registering-lineage-for-model.html
 yaml_text = f"""Churn Model API Endpoint:
         hive_table_qualified_names:                                             # this is a predefined key to link to training data
             - "{os.environ["HIVE_DATABASE"]}.{os.environ["HIVE_TABLE"]}@cm"     # the qualifiedName of the hive_table object representing                
