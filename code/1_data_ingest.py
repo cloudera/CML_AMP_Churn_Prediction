@@ -177,37 +177,44 @@ telco_data.coalesce(1).write.csv(
 )
 
 if os.environ["STORAGE_MODE"] == "external":
-    spark.sql("show databases").show()
-    spark.sql("show tables in " + hive_database).show()
+    try:
+        spark.sql("show databases").show()
+        spark.sql("show tables in " + hive_database).show()
 
-    # Create the Hive table, if possible
-    # This is here to create the table in Hive used be the other parts of the project, if it
-    # does not already exist.
-    if hive_table not in list(
-        spark.sql("show tables in " + hive_database).toPandas()["tableName"]
-    ):
-        print("creating the " + hive_table + " table")
+        # Create the Hive table, if possible
+        # This is here to create the table in Hive used be the other parts of the project, if it
+        # does not already exist.
+        if hive_table not in list(
+            spark.sql("show tables in " + hive_database).toPandas()["tableName"]
+        ):
+            print("creating the " + hive_table + " table")
 
-        try:
-            telco_data.write.format("parquet").mode("overwrite").saveAsTable(
-                hive_table_fq
-            )
-        except AnalysisException as ae:
-            print(ae)
-            print("Removing the conflicting directory from storage location.")
+            try:
+                telco_data.write.format("parquet").mode("overwrite").saveAsTable(
+                    hive_table_fq
+                )
+            except AnalysisException as ae:
+                print(ae)
+                print("Removing the conflicting directory from storage location.")
 
-            conflict_location = f'{os.environ["STORAGE"]}/datalake/data/warehouse/tablespace/external/hive/{os.environ["HIVE_TABLE"]}'
-            cmd = ["hdfs", "dfs", "-rm", "-r", conflict_location]
-            subprocess.call(cmd)
-            telco_data.write.format("parquet").mode("overwrite").saveAsTable(
-                hive_table_fq
-            )
+                conflict_location = f'{os.environ["STORAGE"]}/datalake/data/warehouse/tablespace/external/hive/{os.environ["HIVE_TABLE"]}'
+                cmd = ["hdfs", "dfs", "-rm", "-r", conflict_location]
+                subprocess.call(cmd)
+                telco_data.write.format("parquet").mode("overwrite").saveAsTable(
+                    hive_table_fq
+                )
 
-        # Show the data in the hive table
-        spark.sql("select * from " + hive_table_fq).show()
+            # Show the data in the hive table
+            spark.sql("select * from " + hive_table_fq).show()
 
-        # To get more detailed information about the hive table you can run this:
-        spark.sql("describe formatted " + hive_table_fq).toPandas()
+            # To get more detailed information about the hive table you can run this:
+            spark.sql("describe formatted " + hive_table_fq).toPandas()
+
+    except Exception as e:
+        print(e)
+        print("Continuing AMP in STORAGE_MODE == local")
+        cml.create_environment_variable({"STORAGE_MODE": "local"})
+
 
 # Other ways to access data
 
