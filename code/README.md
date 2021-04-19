@@ -71,7 +71,7 @@ Click **Start Run** and the experiment will be scheduled to build and run. Once 
 
 The **[Models](https://docs.cloudera.com/machine-learning/cloud/models/topics/ml-creating-and-deploying-a-model.html)** feature in CML is used top deploy a machine learning model into production for real-time prediction. To deploy the model that was trained in the previous step, navigate to the project page, then click *Models > New Model* and create a new model with the following details:
 
-* **Name**: Explainer
+* **Name**: Churn Model API Endpoint
 * **Description**: Explain customer churn prediction
 * **File**: 5_model_serve_explainer.py
 * **Function**: explain
@@ -152,7 +152,7 @@ The final step is the model operations which consists of [Model Metrics](https:/
 
 **Model Governance** is setup in the `0_bootstrap.py` script, which writes out the `lineage.yml` file at the start of the project to provide an integration point with Apache Atlas. For **Model Metrics**, open a workbench session (1 vCPU / 2 GiB) and open the `7a_ml_ops_simulation.py` file. You need to set the `model_id` number from the model created in step 5 on line 113. The model number is also located on the model's main page:
 
-![model_id](/Users/areed/Documents/AMPs/public/CML_AMP_Churn_Prediction/images/model_id.png)
+![model_id](../images/model_id.png)
 
 `model_id = "95"`
 
