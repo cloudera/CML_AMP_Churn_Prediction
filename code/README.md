@@ -71,7 +71,7 @@ Click **Start Run** and the experiment will be scheduled to build and run. Once 
 
 The **[Models](https://docs.cloudera.com/machine-learning/cloud/models/topics/ml-creating-and-deploying-a-model.html)** feature in CML is used top deploy a machine learning model into production for real-time prediction. To deploy the model that was trained in the previous step, navigate to the project page, then click *Models > New Model* and create a new model with the following details:
 
-* **Name**: Explainer
+* **Name**: Churn Model API Endpoint
 * **Description**: Explain customer churn prediction
 * **File**: 5_model_serve_explainer.py
 * **Function**: explain
