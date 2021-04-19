@@ -152,7 +152,7 @@ The final step is the model operations which consists of [Model Metrics](https:/
 
 **Model Governance** is setup in the `0_bootstrap.py` script, which writes out the `lineage.yml` file at the start of the project to provide an integration point with Apache Atlas. For **Model Metrics**, open a workbench session (1 vCPU / 2 GiB) and open the `7a_ml_ops_simulation.py` file. You need to set the `model_id` number from the model created in step 5 on line 113. The model number is also located on the model's main page:
 
-![model_id](/Users/areed/Documents/AMPs/public/CML_AMP_Churn_Prediction/images/model_id.png)
+![model_id](../images/model_id.png)
 
 `model_id = "95"`
 
