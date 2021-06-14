@@ -131,12 +131,12 @@ from IPython.display import Image
 os.chdir("code")
 from churnexplainer import ExplainedModel
 
-Image("images/table_view.png")
+Image("../images/table_view.png")
 #
 # Clicking on any row will show a "local" interpreted model for that particular customer.
 # Here, you can see how adjusting any one of the features will change that customer's churn prediction.
 #
-Image("images/single_view_1.png")
+Image("../images/single_view_1.png")
 #
 # Changing the *InternetService* to *DSL* lowers the probablity of churn.
 # **Note**: this obviously does *not* mean that you should change that customer's internet service to DSL
@@ -149,7 +149,7 @@ Image("images/single_view_1.png")
 # so that the predictions stop being reliable.
 # It's important to use Jobs to keep models up-to-date.
 #
-Image("images/single_view_2.png")
+Image("../images/single_view_2.png")
 #
 # There are many frameworks that ease the development of interactive, informative webapps.
 # Once written, it is straightforward to deploy them in CML.
