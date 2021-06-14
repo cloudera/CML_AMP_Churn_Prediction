@@ -194,21 +194,21 @@ if os.environ["STORAGE_MODE"] == "external":
 else:
     path = "/home/cdsw/raw/WA_Fn-UseC_-Telco-Customer-Churn-.csv"
 
-telco_data = spark.read.csv(path, header=True, schema=schema, sep=",", nullValue="NA")
-
-# ...and inspect the data.
-telco_data.show()
-
-telco_data.printSchema()
-
-# Now we can store the Spark DataFrame as a file in the local CML file system
-# *and* (if possible) as a table in Hive used by the other parts of the project.
-telco_data.coalesce(1).write.csv(
-    "file:/home/cdsw/raw/telco-data/", mode="overwrite", header=True
-)
-
 if os.environ["STORAGE_MODE"] == "external":
+    
     try:
+        telco_data = spark.read.csv(path, header=True, schema=schema, sep=",", nullValue="NA")
+
+        # ...and inspect the data.
+        telco_data.show()
+
+        telco_data.printSchema()
+
+        # Now we can store the Spark DataFrame as a file in the local CML file system
+        # *and* (if possible) as a table in Hive used by the other parts of the project.
+        telco_data.coalesce(1).write.csv(
+            "file:/home/cdsw/raw/telco-data/", mode="overwrite", header=True
+        )
         spark.sql("show databases").show()
         spark.sql("show tables in " + hive_database).show()
 
