@@ -6,6 +6,9 @@ prototype_version: 1.0
 date: "2020-09-29"
 api_version: 1
 
+feature_dependencies:
+  - model_metrics
+
 environment_variables:
   DATA_LOCATION:
     default: data/churn_prototype
@@ -29,7 +32,7 @@ tasks:
     entity_label: install_deps
     script: code/0_bootstrap.py
     arguments: None
-    short_summary:  >-
+    short_summary: >-
       Job to install dependencies, set environment variables, and upload data
     kernel: python3
 
@@ -81,27 +84,28 @@ tasks:
     entity_label: telco_churn_model
     comment: Build churn model
     examples:
-      - request: {
-                    "StreamingTV": "No",
-                    "MonthlyCharges": 70.35,
-                    "PhoneService": "No",
-                    "PaperlessBilling": "No",
-                    "Partner": "No",
-                    "OnlineBackup": "No",
-                    "gender": "Female",
-                    "Contract": "Month-to-month",
-                    "TotalCharges": 1397.475,
-                    "StreamingMovies": "No",
-                    "DeviceProtection": "No",
-                    "PaymentMethod": "Bank transfer (automatic)",
-                    "tenure": 29,
-                    "Dependents": "No",
-                    "OnlineSecurity": "No",
-                    "MultipleLines": "No",
-                    "InternetService": "DSL",
-                    "SeniorCitizen": "No",
-                    "TechSupport": "No",
-                }
+      - request:
+          {
+            "StreamingTV": "No",
+            "MonthlyCharges": 70.35,
+            "PhoneService": "No",
+            "PaperlessBilling": "No",
+            "Partner": "No",
+            "OnlineBackup": "No",
+            "gender": "Female",
+            "Contract": "Month-to-month",
+            "TotalCharges": 1397.475,
+            "StreamingMovies": "No",
+            "DeviceProtection": "No",
+            "PaymentMethod": "Bank transfer (automatic)",
+            "tenure": 29,
+            "Dependents": "No",
+            "OnlineSecurity": "No",
+            "MultipleLines": "No",
+            "InternetService": "DSL",
+            "SeniorCitizen": "No",
+            "TechSupport": "No",
+          }
         response: ""
     target_file_path: code/5_model_serve_explainer.py
     target_function_name: explain
