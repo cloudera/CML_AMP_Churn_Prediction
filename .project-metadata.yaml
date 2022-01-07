@@ -6,9 +6,6 @@ prototype_version: 1.0
 date: "2020-09-29"
 api_version: 1
 
-feature_dependencies:
-  - model_metrics
-
 environment_variables:
   DATA_LOCATION:
     default: data/churn_prototype
@@ -25,6 +22,19 @@ environment_variables:
     description: >-
       Name of the Hive table that will be created and populated with the data used for this prototype.
       If the table already exists, the prototype will assume it already contains the data for this prototype.
+
+feature_dependencies:
+  - model_metrics
+
+runtimes:
+  - editor: Workbench
+    kernel: Python 3.6
+    edition: Standard
+
+engine_images:
+  - image_name: engine
+    tags:
+      - 14
 
 tasks:
   - type: create_job
