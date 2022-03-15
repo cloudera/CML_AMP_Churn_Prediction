@@ -202,7 +202,10 @@ client.list_models(project_id)
 # You can use an APIV2-based utility to access the latest model's metadata. For more, explore the src folder
 apiUtil = ApiUtility()
 
+Model_AccessKey = apiUtil.get_latest_deployment_details(model_name="Churn Model API Endpoint")["model_access_key"]
 Deployment_CRN = apiUtil.get_latest_deployment_details(model_name="Churn Model API Endpoint")["latest_deployment_crn"]
+
+
 
 # Get the various Model Endpoint details
 HOST = os.getenv("CDSW_API_URL").split(":")[0] + "://" + os.getenv("CDSW_DOMAIN")
@@ -246,7 +249,7 @@ for record in json.loads(df_sample_clean.to_json(orient="records")):
     no_churn_record.pop("customerID")
     no_churn_record.pop("Churn")
     # **note** this is an easy way to interact with a model in a script
-    response = cdsw.call_model(latest_model["accessKey"], no_churn_record)
+    response = cdsw.call_model(Model_AccessKey, no_churn_record)
     response_labels_sample.append(
         {
             "uuid": response["response"]["uuid"],
