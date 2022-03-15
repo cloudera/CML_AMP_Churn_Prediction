@@ -147,7 +147,8 @@ import seaborn as sns
 import copy
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
-
+import cmlapi
+from src.api import ApiUtility
 
 hive_database = os.environ["HIVE_DATABASE"]
 hive_table = os.environ["HIVE_TABLE"]
@@ -191,33 +192,20 @@ else:
 
 df = telco_data_raw.toPandas()
 
-# Get the various Model CRN details
+# You can access all models with API V2
+
+client = cmlapi.default_client()
+
+project_id = os.environ["CDSW_PROJECT_ID"]
+client.list_models(project_id)
+
+# You can use an APIV2-based utility to access the latest model's metadata. For more, explore the src folder
+apiUtil = ApiUtility()
+
+Deployment_CRN = apiUtil.get_latest_deployment_details(model_name="Churn Model API Endpoint")["latest_deployment_crn"]
+
+# Get the various Model Endpoint details
 HOST = os.getenv("CDSW_API_URL").split(":")[0] + "://" + os.getenv("CDSW_DOMAIN")
-USERNAME = os.getenv("CDSW_PROJECT_URL").split("/")[6]
-API_KEY = os.getenv("CDSW_API_KEY")
-PROJECT_NAME = os.getenv("CDSW_PROJECT")
-
-cml = CMLBootstrap(HOST, USERNAME, API_KEY, PROJECT_NAME)
-
-# Get newly deployed churn model details using cmlbootstrapAPI
-models = cml.get_models({})
-churn_model_details = [
-    model
-    for model in models
-    if model["name"] == "Churn Model API Endpoint"
-    and model["creator"]["username"] == USERNAME
-    and model["project"]["slug"] == PROJECT_NAME
-][0]
-latest_model = cml.get_model(
-    {
-        "id": churn_model_details["id"],
-        "latestModelDeployment": True,
-        "latestModelBuild": True,
-    }
-)
-
-Model_CRN = latest_model["crn"]
-Deployment_CRN = latest_model["latestModelDeployment"]["crn"]
 model_endpoint = (
     HOST.split("//")[0] + "//modelservice." + HOST.split("//")[1] + "/model"
 )
