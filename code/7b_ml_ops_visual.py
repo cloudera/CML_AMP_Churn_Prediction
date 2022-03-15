@@ -96,6 +96,7 @@ client.list_models(project_id)
 # You can use an APIV2-based utility to access the latest model's metadata. For more, explore the src folder
 apiUtil = ApiUtility()
 
+Model_CRN = apiUtil.get_latest_deployment_details(model_name="Churn Model API Endpoint")["model_crn"]
 Deployment_CRN = apiUtil.get_latest_deployment_details(model_name="Churn Model API Endpoint")["latest_deployment_crn"]
 
 # Get the various Model Endpoint details
