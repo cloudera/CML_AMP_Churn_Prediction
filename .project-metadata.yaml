@@ -30,6 +30,7 @@ runtimes:
   - editor: Workbench
     kernel: Python 3.6
     edition: Standard
+    addons: ["Spark 2.4.7 - CDP 7.2.10 - CDE 1.11"]
 
 engine_images:
   - image_name: engine
