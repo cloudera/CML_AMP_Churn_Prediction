@@ -32,41 +32,23 @@ runtimes:
     addons: ["Spark 2.4.7 - CDP 7.2.10 - CDE 1.11"]
 
 tasks:
-  - type: create_job
+  - type: run_session
     name: Install dependencies
-    entity_label: install_deps
     script: code/0_bootstrap.py
-    arguments: None
-    short_summary: >-
-      Job to install dependencies, set environment variables, and upload data
-
-  - type: run_job
-    entity_label: install_deps
-    short_summary: Running job to install dependencies
-
-  - type: create_job
+    cpu: 1
+    memory: 2
+    
+  - type: run_session
     name: Ingest data
-    entity_label: ingest_data
     script: code/1_data_ingest.py
-    arguments: None
-    short_summary: Job to ingest data into our Hive table
-
-  - type: run_job
-    entity_label: ingest_data
-    short_summary: Running job to ingest data
-
-  - type: create_job
+    cpu: 1
+    memory: 2
+      
+  - type: run_session
     name: Train Churn Model
-    entity_label: train_model
     script: code/4_train_models.py
-    arguments: None
-    short_summary: Job to train models
-
-  - type: run_job
-    entity_label: train_model
-    short_summary: Run model training job
-    long_summary: >-
-      Running the job to train models
+    cpu: 1
+    memory: 2
 
   - type: create_model
     name: Churn Model API Endpoint
