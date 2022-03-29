@@ -251,8 +251,8 @@ explainedmodel.save(model_name='telco_linear')
 # training run to the experiment history.
 cdsw.track_metric("train_score", round(train_score, 2))
 cdsw.track_metric("test_score", round(test_score, 2))
-cdsw.track_metric("model_path", explainedmodel.model_path)
-cdsw.track_file(explainedmodel.model_path)
+#cdsw.track_metric("model_path", explainedmodel.model_path)
+#cdsw.track_file(explainedmodel.model_path)
 
 # Wrap up
 
