@@ -35,20 +35,25 @@ tasks:
   - type: run_session
     name: Install dependencies
     script: code/0_bootstrap.py
+    short_summary: >-
+      Install dependencies, set environment variables, and upload data
     cpu: 1
     memory: 2
     
   - type: run_session
     name: Ingest data
     script: code/1_data_ingest.py
+    short_summary: Ingest data into our Hive table
     cpu: 1
     memory: 2
       
   - type: run_session
     name: Train Churn Model
     script: code/4_train_models.py
+    short_summary: Train models
     cpu: 1
     memory: 2
+    
   - type: create_model
     name: Churn Model API Endpoint
     entity_label: telco_churn_model
