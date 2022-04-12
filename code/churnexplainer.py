@@ -39,6 +39,7 @@
 # ###########################################################################
 
 import datetime, dill, os
+import numpy as np
 import pandas as pd
 
 from sklearn.pipeline import TransformerMixin
@@ -78,25 +79,26 @@ and methods for users (who usually have dataframes):
 
 DATA_DIR = "/home/cdsw"
 
+
 class ExplainedModel:
     def __init__(
         self,
         labels=None,
-        data=None,  
+        data=None,
         categoricalencoder=None,
         pipeline=None,
         explainer=None,
     ):
-      
-      self.data = data
-      self.labels = labels
-      self.categoricalencoder = categoricalencoder
-      self.pipeline = pipeline
-      self.explainer = explainer
+
+        self.data = data
+        self.labels = labels
+        self.categoricalencoder = categoricalencoder
+        self.pipeline = pipeline
+        self.explainer = explainer
 
     @staticmethod
-    def load(model_name) -> 'ExplainedModel':
-        """ Returns an ExplainedModel object"""
+    def load(model_name) -> "ExplainedModel":
+        """Returns an ExplainedModel object"""
         model_dir = os.path.join(DATA_DIR, "models", model_name)
         model_path = os.path.join(model_dir, model_name + ".pkl")
         result = ExplainedModel()
@@ -134,7 +136,11 @@ class ExplainedModel:
         return self.explain_df(pd.DataFrame([dct]))
 
     def cast_dct(self, dct):
-        return {k: self.dtypes[k].type(v) for k, v in dct.items()}
+        dct = {k: self.dtypes[k].type(v) for k, v in dct.items()}
+        dct = {
+            k: (v if type(v) != np.dtype("int64") else int(v)) for k, v in dct.items()
+        }
+        return dct
 
     @property
     def dtypes(self):
