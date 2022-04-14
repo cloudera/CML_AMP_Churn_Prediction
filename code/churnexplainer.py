@@ -39,6 +39,7 @@
 # ###########################################################################
 
 import datetime, dill, os
+import numpy as np
 import pandas as pd
 
 from sklearn.pipeline import TransformerMixin
@@ -76,42 +77,38 @@ and methods for users (who usually have dataframes):
  - explain_df, returns predictions and explanation for example dataframe
 """
 
+DATA_DIR = "/home/cdsw"
+
 
 class ExplainedModel:
     def __init__(
         self,
-        model_name=None,
         labels=None,
-        data=None,  # dataset=None, data=None, labels=None,
+        data=None,
         categoricalencoder=None,
         pipeline=None,
         explainer=None,
-        data_dir=None,
-        load=True,
     ):
-        if model_name is not None:
-            self.model_name = model_name
-            self.is_loaded = False
-        else:
-            self.data = data
-            self.labels = labels
-            self.categoricalencoder = categoricalencoder
-            self.pipeline = pipeline
-            self.explainer = explainer
-            self.is_loaded = True
-        self.model_dir = os.path.join(data_dir, "models", self.model_name)
-        self.model_path = os.path.join(self.model_dir, self.model_name + ".pkl")
-        # if asked to load and not yet loaded, load model!
-        if load and not self.is_loaded:
-            self.load()
 
-    def load(self):
-        if not self.is_loaded:
-            with open(self.model_path, "rb") as f:
-                self.__dict__.update(dill.load(f))
-            self.is_loaded = True
+        self.data = data
+        self.labels = labels
+        self.categoricalencoder = categoricalencoder
+        self.pipeline = pipeline
+        self.explainer = explainer
 
-    def save(self):
+    @staticmethod
+    def load(model_name) -> "ExplainedModel":
+        """Returns an ExplainedModel object"""
+        model_dir = os.path.join(DATA_DIR, "models", model_name)
+        model_path = os.path.join(model_dir, model_name + ".pkl")
+        result = ExplainedModel()
+        with open(model_path, "rb") as f:
+            result.__dict__.update(dill.load(f))
+        return result
+
+    def save(self, model_name):
+        model_dir = os.path.join(DATA_DIR, "models", model_name)
+        model_path = os.path.join(model_dir, model_name + ".pkl")
         dilldict = {
             "data": self.data,
             "labels": self.labels,
@@ -119,20 +116,8 @@ class ExplainedModel:
             "pipeline": self.pipeline,
             "explainer": self.explainer,
         }
-        # self._make_model_dir()
-        with open(self.model_path, "wb") as f:
+        with open(model_path, "wb") as f:
             dill.dump(dilldict, f)
-
-    #    def _make_model_name(self):
-    #        now = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
-    #        model_type = os.environ.get('CHURN_MODEL_TYPE', 'linear')
-    #        #model_name = '_'.join([now, self.dataset, model_type, get_git_hash()])
-    #        model_name = '_'.join([now, self.dataset, model_type])
-    #        return model_name
-    #
-    #    def _make_model_dir(self):
-    #        if not os.path.exists(self.model_dir):
-    #            os.makedirs(self.model_dir)
 
     def predict_df(self, df):
         X = self.categoricalencoder.transform(df)
@@ -151,7 +136,11 @@ class ExplainedModel:
         return self.explain_df(pd.DataFrame([dct]))
 
     def cast_dct(self, dct):
-        return {k: self.dtypes[k].type(v) for k, v in dct.items()}
+        dct = {k: self.dtypes[k].type(v) for k, v in dct.items()}
+        dct = {
+            k: (v if type(v) != np.dtype("int64") else int(v)) for k, v in dct.items()
+        }
+        return dct
 
     @property
     def dtypes(self):

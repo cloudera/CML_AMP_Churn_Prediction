@@ -204,7 +204,7 @@ import cdsw, numpy
 from churnexplainer import ExplainedModel
 
 # Load the model saved earlier.
-em = ExplainedModel(model_name="telco_linear", data_dir="/home/cdsw")
+em = ExplainedModel.load(model_name="telco_linear")
 
 # *Note:* If you want to test this in a session, comment out the line
 # `@cdsw.model_metrics` below. Don't forget to uncomment when you
@@ -231,10 +231,10 @@ def explain(args):
     return {"data": dict(data), "probability": probability, "explanation": explanation}
 
 
-# To test this is a session, comment out the `@cdsw.model_metrics`  line,
+# To test this in a Session, comment out the `@cdsw.model_metrics`  line,
 # uncomment the and run the two rows below.
-# x={"StreamingTV":"No","MonthlyCharges":70.35,"PhoneService":"No","PaperlessBilling":"No","Partner":"No","OnlineBackup":"No","gender":"Female","Contract":"Month-to-month","TotalCharges":1397.475,"StreamingMovies":"No","DeviceProtection":"No","PaymentMethod":"Bank transfer (automatic)","tenure":29,"Dependents":"No","OnlineSecurity":"No","MultipleLines":"No","InternetService":"DSL","SeniorCitizen":"No","TechSupport":"No"}
-# explain(x)
+#x={"StreamingTV":"No","MonthlyCharges":70.35,"PhoneService":"No","PaperlessBilling":"No","Partner":"No","OnlineBackup":"No","gender":"Female","Contract":"Month-to-month","TotalCharges":1397.475,"StreamingMovies":"No","DeviceProtection":"No","PaymentMethod":"Bank transfer (automatic)","tenure":29,"Dependents":"No","OnlineSecurity":"No","MultipleLines":"No","InternetService":"DSL","SeniorCitizen":"No","TechSupport":"No"}
+#explain(x)
 
 ## Wrap up
 #

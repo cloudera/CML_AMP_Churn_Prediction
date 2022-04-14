@@ -2,9 +2,8 @@ name: ML Churn Prototype
 description: Prototype to demonstrate building a churn model on CML
 author: Cloudera Inc.
 specification_version: 1.0
-prototype_version: 1.0
-date: "2020-09-29"
-api_version: 1
+prototype_version: 2.0
+date: "2022-03-25"
 
 environment_variables:
   DATA_LOCATION:
@@ -28,55 +27,33 @@ feature_dependencies:
 
 runtimes:
   - editor: Workbench
-    kernel: Python 3.6
+    kernel: Python 3.7
     edition: Standard
     addons: ["Spark 2.4.7 - CDP 7.2.10 - CDE 1.11"]
 
-engine_images:
-  - image_name: engine
-    tags:
-      - 14
-
 tasks:
-  - type: create_job
+  - type: run_session
     name: Install dependencies
-    entity_label: install_deps
     script: code/0_bootstrap.py
-    arguments: None
     short_summary: >-
-      Job to install dependencies, set environment variables, and upload data
-    kernel: python3
-
-  - type: run_job
-    entity_label: install_deps
-    short_summary: Running job to install dependencies
-
-  - type: create_job
+      Install dependencies, set environment variables, and upload data
+    cpu: 1
+    memory: 2
+    
+  - type: run_session
     name: Ingest data
-    entity_label: ingest_data
     script: code/1_data_ingest.py
-    arguments: None
-    short_summary: Job to ingest data into our Hive table
-    kernel: python3
-
-  - type: run_job
-    entity_label: ingest_data
-    short_summary: Running job to ingest data
-
-  - type: create_job
+    short_summary: Ingest data into our Hive table
+    cpu: 1
+    memory: 2
+      
+  - type: run_session
     name: Train Churn Model
-    entity_label: train_model
     script: code/4_train_models.py
-    arguments: None
-    short_summary: Job to train models
-    kernel: python3
-
-  - type: run_job
-    entity_label: train_model
-    short_summary: Run model training job
-    long_summary: >-
-      Running the job to train models
-
+    short_summary: Train models
+    cpu: 1
+    memory: 2
+    
   - type: create_model
     name: Churn Model API Endpoint
     entity_label: telco_churn_model
@@ -120,7 +97,6 @@ tasks:
         response: ""
     target_file_path: code/5_model_serve_explainer.py
     target_function_name: explain
-    kernel: python3
 
   - type: deploy_model
     name: telco_churn_model
@@ -132,4 +108,3 @@ tasks:
     name: Application to Serve Churn UI
     subdomain: churn
     script: code/6_application.py
-    kernel: python3

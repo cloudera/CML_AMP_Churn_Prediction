@@ -174,7 +174,7 @@ if os.environ.get("SHTM_ACCESS_KEY") != None:
 
 
 # Load the explained model
-em = ExplainedModel(model_name="telco_linear", data_dir="/home/cdsw")
+em = ExplainedModel.load(model_name="telco_linear")
 
 # Creates an explained version of a partiuclar data point. This is almost exactly the same as the data used in the model serving code.
 def explainid(N):
