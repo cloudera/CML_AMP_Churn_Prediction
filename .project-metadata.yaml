@@ -6,6 +6,13 @@ prototype_version: 2.0
 date: "2022-03-25"
 
 environment_variables:
+  STORAGE_MODE:
+    default: local
+    description: >-
+      This variable designates whether the project is built from scratch ('external') or from the preprocessed dataset included
+      in the repo ('local'). If this variable is set to 'external', the user must have access to the external storage configured 
+      on the CML workspace's environment, and the project setup tasks will download, process, and store raw data to the
+      storage location specificed below.
   DATA_LOCATION:
     default: data/churn_prototype
     description: >-
@@ -45,6 +52,8 @@ tasks:
     name: Ingest data
     script: code/1_data_ingest.py
     short_summary: Ingest data into our Hive table
+    long_summary: >-
+      This script will only run if STORAGE_MODE is set to external
     cpu: 1
     memory: 2
       
