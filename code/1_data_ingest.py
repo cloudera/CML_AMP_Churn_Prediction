@@ -113,157 +113,158 @@ from pyspark.sql import SparkSession
 from pyspark.sql.utils import AnalysisException
 from pyspark.sql.types import *
 
-# Set the setup variables needed by CMLBootstrap
-HOST = os.getenv("CDSW_API_URL").split(":")[0] + "://" + os.getenv("CDSW_DOMAIN")
-USERNAME = os.getenv("CDSW_PROJECT_URL").split("/")[6]  # args.username  # "vdibia"
-API_KEY = os.getenv("CDSW_API_KEY")
-PROJECT_NAME = os.getenv("CDSW_PROJECT")
+def main():
 
-# Instantiate API Wrapper
-cml = CMLBootstrap(HOST, USERNAME, API_KEY, PROJECT_NAME)
+    # Set the setup variables needed by CMLBootstrap
+    HOST = os.getenv("CDSW_API_URL").split(":")[0] + "://" + os.getenv("CDSW_DOMAIN")
+    USERNAME = os.getenv("CDSW_PROJECT_URL").split("/")[6]  # args.username  # "vdibia"
+    API_KEY = os.getenv("CDSW_API_KEY")
+    PROJECT_NAME = os.getenv("CDSW_PROJECT")
 
-# Set the STORAGE environment variable
-try:
-    storage = os.environ["STORAGE"]
-except:
-    if os.path.exists("/etc/hadoop/conf/hive-site.xml"):
-        tree = ET.parse("/etc/hadoop/conf/hive-site.xml")
-        root = tree.getroot()
-        for prop in root.findall("property"):
-            if prop.find("name").text == "hive.metastore.warehouse.dir":
-                storage = (
-                    prop.find("value").text.split("/")[0]
-                    + "//"
-                    + prop.find("value").text.split("/")[2]
-                )
-    else:
-        storage = "/user/" + os.getenv("HADOOP_USER_NAME")
-    storage_environment_params = {"STORAGE": storage}
-    storage_environment = cml.create_environment_variable(storage_environment_params)
-    os.environ["STORAGE"] = storage
+    # Instantiate API Wrapper
+    cml = CMLBootstrap(HOST, USERNAME, API_KEY, PROJECT_NAME)
 
-
-spark = SparkSession.builder.appName("PythonSQL").master("local[*]").getOrCreate()
-
-# **Note:**
-# Our file isn't big, so running it in Spark local mode is fine but you can add the following config
-# if you want to run Spark on the kubernetes cluster
-#
-# > .config("spark.yarn.access.hadoopFileSystems",os.getenv['STORAGE'])\
-#
-# and remove `.master("local[*]")\`
-#
-
-# Since we know the data already, we can add schema upfront. This is good practice as Spark will
-# read *all* the Data if you try infer the schema.
-schema = StructType(
-    [
-        StructField("customerID", StringType(), True),
-        StructField("gender", StringType(), True),
-        StructField("SeniorCitizen", StringType(), True),
-        StructField("Partner", StringType(), True),
-        StructField("Dependents", StringType(), True),
-        StructField("tenure", DoubleType(), True),
-        StructField("PhoneService", StringType(), True),
-        StructField("MultipleLines", StringType(), True),
-        StructField("InternetService", StringType(), True),
-        StructField("OnlineSecurity", StringType(), True),
-        StructField("OnlineBackup", StringType(), True),
-        StructField("DeviceProtection", StringType(), True),
-        StructField("TechSupport", StringType(), True),
-        StructField("StreamingTV", StringType(), True),
-        StructField("StreamingMovies", StringType(), True),
-        StructField("Contract", StringType(), True),
-        StructField("PaperlessBilling", StringType(), True),
-        StructField("PaymentMethod", StringType(), True),
-        StructField("MonthlyCharges", DoubleType(), True),
-        StructField("TotalCharges", DoubleType(), True),
-        StructField("Churn", StringType(), True),
-    ]
-)
-
-# Now we can read in the data into Spark
-storage = os.environ["STORAGE"]
-data_location = os.environ["DATA_LOCATION"]
-hive_database = os.environ["HIVE_DATABASE"]
-hive_table = os.environ["HIVE_TABLE"]
-hive_table_fq = hive_database + "." + hive_table
-
-if os.environ["STORAGE_MODE"] == "external":
-    path = f"{storage}/{data_location}/WA_Fn-UseC_-Telco-Customer-Churn-.csv"
-else:
-    path = "/home/cdsw/raw/WA_Fn-UseC_-Telco-Customer-Churn-.csv"
-
-if os.environ["STORAGE_MODE"] == "external":
-    
+    # Set the STORAGE environment variable
     try:
-        telco_data = spark.read.csv(path, header=True, schema=schema, sep=",", nullValue="NA")
+        storage = os.environ["STORAGE"]
+    except:
+        if os.path.exists("/etc/hadoop/conf/hive-site.xml"):
+            tree = ET.parse("/etc/hadoop/conf/hive-site.xml")
+            root = tree.getroot()
+            for prop in root.findall("property"):
+                if prop.find("name").text == "hive.metastore.warehouse.dir":
+                    storage = (
+                        prop.find("value").text.split("/")[0]
+                        + "//"
+                        + prop.find("value").text.split("/")[2]
+                    )
+        else:
+            storage = "/user/" + os.getenv("HADOOP_USER_NAME")
+        storage_environment_params = {"STORAGE": storage}
+        storage_environment = cml.create_environment_variable(storage_environment_params)
+        os.environ["STORAGE"] = storage
 
-        # ...and inspect the data.
-        telco_data.show()
 
-        telco_data.printSchema()
+    spark = SparkSession.builder.appName("PythonSQL").master("local[*]").getOrCreate()
 
-        # Now we can store the Spark DataFrame as a file in the local CML file system
-        # *and* (if possible) as a table in Hive used by the other parts of the project.
-        telco_data.coalesce(1).write.csv(
-            "file:/home/cdsw/raw/telco-data/", mode="overwrite", header=True
+    # **Note:**
+    # Our file isn't big, so running it in Spark local mode is fine but you can add the following config
+    # if you want to run Spark on the kubernetes cluster
+    #
+    # > .config("spark.yarn.access.hadoopFileSystems",os.getenv['STORAGE'])\
+    #
+    # and remove `.master("local[*]")\`
+    #
+
+    # Since we know the data already, we can add schema upfront. This is good practice as Spark will
+    # read *all* the Data if you try infer the schema.
+    schema = StructType(
+        [
+            StructField("customerID", StringType(), True),
+            StructField("gender", StringType(), True),
+            StructField("SeniorCitizen", StringType(), True),
+            StructField("Partner", StringType(), True),
+            StructField("Dependents", StringType(), True),
+            StructField("tenure", DoubleType(), True),
+            StructField("PhoneService", StringType(), True),
+            StructField("MultipleLines", StringType(), True),
+            StructField("InternetService", StringType(), True),
+            StructField("OnlineSecurity", StringType(), True),
+            StructField("OnlineBackup", StringType(), True),
+            StructField("DeviceProtection", StringType(), True),
+            StructField("TechSupport", StringType(), True),
+            StructField("StreamingTV", StringType(), True),
+            StructField("StreamingMovies", StringType(), True),
+            StructField("Contract", StringType(), True),
+            StructField("PaperlessBilling", StringType(), True),
+            StructField("PaymentMethod", StringType(), True),
+            StructField("MonthlyCharges", DoubleType(), True),
+            StructField("TotalCharges", DoubleType(), True),
+            StructField("Churn", StringType(), True),
+        ]
+    )
+
+    # Now we can read in the data into Spark
+    storage = os.environ["STORAGE"]
+    data_location = os.environ["DATA_LOCATION"]
+    hive_database = os.environ["HIVE_DATABASE"]
+    hive_table = os.environ["HIVE_TABLE"]
+    hive_table_fq = hive_database + "." + hive_table
+
+    path = f"{storage}/{data_location}/WA_Fn-UseC_-Telco-Customer-Churn-.csv"
+    telco_data = spark.read.csv(path, header=True, schema=schema, sep=",", nullValue="NA")
+
+    # ...and inspect the data.
+    telco_data.show()
+
+    telco_data.printSchema()
+
+    # Now we can store the Spark DataFrame as a file in the local CML file system
+    # *and* (if possible) as a table in Hive used by the other parts of the project.
+    telco_data.coalesce(1).write.csv(
+        "file:/home/cdsw/raw/telco-data/", mode="overwrite", header=True
+    )
+    spark.sql("show databases").show()
+    spark.sql("show tables in " + hive_database).show()
+
+    # Create the Hive table, if possible
+    # This is here to create the table in Hive used be the other parts of the project, if it
+    # does not already exist.
+    if hive_table not in list(
+        spark.sql("show tables in " + hive_database).toPandas()["tableName"]
+    ):
+        print("creating the " + hive_table + " table")
+
+        try:
+            telco_data.write.format("parquet").mode("overwrite").saveAsTable(
+                hive_table_fq
+            )
+        except AnalysisException as ae:
+            print(ae)
+            print("Removing the conflicting directory from storage location.")
+
+            conflict_location = f'{os.environ["STORAGE"]}/datalake/data/warehouse/tablespace/external/hive/{os.environ["HIVE_TABLE"]}'
+            cmd = ["hdfs", "dfs", "-rm", "-r", conflict_location]
+            subprocess.call(cmd)
+            telco_data.write.format("parquet").mode("overwrite").saveAsTable(
+                hive_table_fq
+            )
+
+        # Show the data in the hive table
+        spark.sql("select * from " + hive_table_fq).show()
+
+        # To get more detailed information about the hive table you can run this:
+        spark.sql("describe formatted " + hive_table_fq).toPandas()
+
+
+    # Other ways to access data
+
+    # To access data from other locations, refer to the
+    # [CML documentation](https://docs.cloudera.com/machine-learning/cloud/import-data/index.html).
+
+    # Scheduled Jobs
+    #
+    # One of the features of CML is the ability to schedule code to run at regular intervals,
+    # similar to cron jobs. This is useful for **data pipelines**, **ETL**, and **regular reporting**
+    # among other use cases. If new data files are created regularly, e.g. hourly log files, you could
+    # schedule a Job to run a data loading script with code like the above.
+
+    # > Any script [can be scheduled as a Job](https://docs.cloudera.com/machine-learning/cloud/jobs-pipelines/topics/ml-creating-a-job.html).
+    # > You can create a Job with specified command line arguments or environment variables.
+    # > Jobs can be triggered by the completion of other jobs, forming a
+    # > [Pipeline](https://docs.cloudera.com/machine-learning/cloud/jobs-pipelines/topics/ml-creating-a-pipeline.html)
+    # > You can configure the job to email individuals with an attachment, e.g. a csv report which your
+    # > script saves at: `/home/cdsw/job1/output.csv`.
+
+    # Try running this script `1_data_ingest.py` for use in such a Job.
+
+
+if __name__ == "__main__":
+
+    if os.environ["STORAGE_MODE"] == "external":
+        main()
+    else:
+        print(
+            "Skipping 1_data_ingest.py because excution is limited to local storage only."
         )
-        spark.sql("show databases").show()
-        spark.sql("show tables in " + hive_database).show()
-
-        # Create the Hive table, if possible
-        # This is here to create the table in Hive used be the other parts of the project, if it
-        # does not already exist.
-        if hive_table not in list(
-            spark.sql("show tables in " + hive_database).toPandas()["tableName"]
-        ):
-            print("creating the " + hive_table + " table")
-
-            try:
-                telco_data.write.format("parquet").mode("overwrite").saveAsTable(
-                    hive_table_fq
-                )
-            except AnalysisException as ae:
-                print(ae)
-                print("Removing the conflicting directory from storage location.")
-
-                conflict_location = f'{os.environ["STORAGE"]}/datalake/data/warehouse/tablespace/external/hive/{os.environ["HIVE_TABLE"]}'
-                cmd = ["hdfs", "dfs", "-rm", "-r", conflict_location]
-                subprocess.call(cmd)
-                telco_data.write.format("parquet").mode("overwrite").saveAsTable(
-                    hive_table_fq
-                )
-
-            # Show the data in the hive table
-            spark.sql("select * from " + hive_table_fq).show()
-
-            # To get more detailed information about the hive table you can run this:
-            spark.sql("describe formatted " + hive_table_fq).toPandas()
-
-    except Exception as e:
-        print(e)
-        print("Continuing AMP in STORAGE_MODE == local")
-        cml.create_environment_variable({"STORAGE_MODE": "local"})
-
-
-# Other ways to access data
-
-# To access data from other locations, refer to the
-# [CML documentation](https://docs.cloudera.com/machine-learning/cloud/import-data/index.html).
-
-# Scheduled Jobs
-#
-# One of the features of CML is the ability to schedule code to run at regular intervals,
-# similar to cron jobs. This is useful for **data pipelines**, **ETL**, and **regular reporting**
-# among other use cases. If new data files are created regularly, e.g. hourly log files, you could
-# schedule a Job to run a data loading script with code like the above.
-
-# > Any script [can be scheduled as a Job](https://docs.cloudera.com/machine-learning/cloud/jobs-pipelines/topics/ml-creating-a-job.html).
-# > You can create a Job with specified command line arguments or environment variables.
-# > Jobs can be triggered by the completion of other jobs, forming a
-# > [Pipeline](https://docs.cloudera.com/machine-learning/cloud/jobs-pipelines/topics/ml-creating-a-pipeline.html)
-# > You can configure the job to email individuals with an attachment, e.g. a csv report which your
-# > script saves at: `/home/cdsw/job1/output.csv`.
-
-# Try running this script `1_data_ingest.py` for use in such a Job.
+        pass
