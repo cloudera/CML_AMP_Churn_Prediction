@@ -1,0 +1,7 @@
+Churn Model API Endpoint:
+        hive_table_qualified_names:                                             # this is a predefined key to link to training data
+            - "default.churn_prototype@cm"     # the qualifiedName of the hive_table object representing                
+        metadata:                                                               # this is a predefined key for additional metadata
+            query: "select * from historical_data"                              # suggested use case: query used to extract training data
+            training_file: "code/4_train_models.py"                             # suggested use case: training file used
+    
