@@ -87,12 +87,14 @@ except:
         root = tree.getroot()
         for prop in root.findall("property"):
             if prop.find("name").text == "hive.metastore.warehouse.dir":
-                storage = (
-                    prop.find("value").text.split("/")[0]
-                    + "//"
-                    + prop.find("value").text.split("/")[2]
-                )
-                
+                # catch erroneous pvc external storage locale
+                if len(prop.find("value").text.split("/")) > 5:
+                    storage = (
+                        prop.find("value").text.split("/")[0]
+                        + "//"
+                        + prop.find("value").text.split("/")[2]
+                    )
+
     # create and set storage environment variables
     storage_environment = cml.create_environment_variable({"STORAGE": storage})
     os.environ["STORAGE"] = storage
