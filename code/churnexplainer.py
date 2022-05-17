@@ -106,8 +106,8 @@ class ExplainedModel:
             with open(model_path, "rb") as f:
                 result.__dict__.update(dill.load(f))
             return result
-        except OSError, e: 
-            print(f"Model path does not exist, returned error: {e}")
+        except OSError as err: 
+            print(f"Model path does not exist, returned error: {err}")
 
     def save(self, model_name):
         model_dir = os.path.join(DATA_DIR, "models", model_name)
