@@ -156,9 +156,11 @@ try:
 
     if spark.sql("SELECT count(*) FROM " + hive_table_fq).collect()[0][0] > 0:
         df = spark.sql("SELECT * FROM " + hive_table_fq).toPandas()
+        df.replace({"SeniorCitizen": {"1": "Yes", "0": "No"}})
 except:
     print("Hive table has not been created")
     df = pd.read_csv(os.path.join("../raw", "WA_Fn-UseC_-Telco-Customer-Churn-.csv"))
+    df.replace({"SeniorCitizen": {1: "Yes", 0: "No"}})
 
 
 # Clean and prep the dataframe
