@@ -81,36 +81,23 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import classification_report
-from cmlbootstrap import CMLBootstrap
 import seaborn as sns
 import sqlite3
+import cmlapi
+from src.api import ApiUtility
 
-# Get newly deployed churn model details using cmlbootstrapAPI
-HOST = os.getenv("CDSW_API_URL").split(":")[0] + "://" + os.getenv("CDSW_DOMAIN")
-USERNAME = os.getenv("CDSW_PROJECT_URL").split("/")[6]  # args.username  # "vdibia"
-API_KEY = os.getenv("CDSW_API_KEY")
-PROJECT_NAME = os.getenv("CDSW_PROJECT")
+# You can access all models with API V2
+client = cmlapi.default_client()
 
-cml = CMLBootstrap(HOST, USERNAME, API_KEY, PROJECT_NAME)
+project_id = os.environ["CDSW_PROJECT_ID"]
+client.list_models(project_id)
 
-models = cml.get_models({})
-churn_model_details = [
-    model
-    for model in models
-    if model["name"] == "Churn Model API Endpoint"
-    and model["creator"]["username"] == USERNAME
-    and model["project"]["slug"] == PROJECT_NAME
-][0]
-latest_model = cml.get_model(
-    {
-        "id": churn_model_details["id"],
-        "latestModelDeployment": True,
-        "latestModelBuild": True,
-    }
-)
+# You can use an APIV2-based utility to access the latest model's metadata. For more, explore the src folder
+apiUtil = ApiUtility()
 
-Model_CRN = latest_model["crn"]
-Deployment_CRN = latest_model["latestModelDeployment"]["crn"]
+Model_CRN = apiUtil.get_latest_deployment_details(model_name="Churn Model API Endpoint")["model_crn"]
+Deployment_CRN = apiUtil.get_latest_deployment_details(model_name="Churn Model API Endpoint")["latest_deployment_crn"]
+
 
 # Read in the model metrics dict
 model_metrics = cdsw.read_metrics(
