@@ -81,7 +81,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import classification_report
-from cmlbootstrap import CMLBootstrap
 import seaborn as sns
 import sqlite3
 import cmlapi
@@ -99,11 +98,6 @@ apiUtil = ApiUtility()
 Model_CRN = apiUtil.get_latest_deployment_details(model_name="Churn Model API Endpoint")["model_crn"]
 Deployment_CRN = apiUtil.get_latest_deployment_details(model_name="Churn Model API Endpoint")["latest_deployment_crn"]
 
-# Get the various Model Endpoint details
-HOST = os.getenv("CDSW_API_URL").split(":")[0] + "://" + os.getenv("CDSW_DOMAIN")
-model_endpoint = (
-    HOST.split("//")[0] + "//modelservice." + HOST.split("//")[1] + "/model"
-)
 
 # Read in the model metrics dict
 model_metrics = cdsw.read_metrics(
