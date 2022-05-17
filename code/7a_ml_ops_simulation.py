@@ -142,12 +142,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import classification_report
-from cmlbootstrap import CMLBootstrap
 import seaborn as sns
 import copy
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
-
+import cmlapi
+from src.api import ApiUtility
 
 hive_database = os.environ["HIVE_DATABASE"]
 hive_table = os.environ["HIVE_TABLE"]
@@ -188,39 +188,18 @@ else:
     telco_data_raw = spark.read.csv(
         path, header=True, sep=",", schema=schema, nullValue="NA"
     )
-
 df = telco_data_raw.toPandas()
 
-# Get the various Model CRN details
-HOST = os.getenv("CDSW_API_URL").split(":")[0] + "://" + os.getenv("CDSW_DOMAIN")
-USERNAME = os.getenv("CDSW_PROJECT_URL").split("/")[6]
-API_KEY = os.getenv("CDSW_API_KEY")
-PROJECT_NAME = os.getenv("CDSW_PROJECT")
+# You can access all models with API V2
+client = cmlapi.default_client()
+project_id = os.environ["CDSW_PROJECT_ID"]
+client.list_models(project_id)
 
-cml = CMLBootstrap(HOST, USERNAME, API_KEY, PROJECT_NAME)
+# You can use an APIV2-based utility to access the latest model's metadata. For more, explore the src folder
+apiUtil = ApiUtility()
+Model_AccessKey = apiUtil.get_latest_deployment_details(model_name="Churn Model API Endpoint")["model_access_key"]
+Deployment_CRN = apiUtil.get_latest_deployment_details(model_name="Churn Model API Endpoint")["latest_deployment_crn"]
 
-# Get newly deployed churn model details using cmlbootstrapAPI
-models = cml.get_models({})
-churn_model_details = [
-    model
-    for model in models
-    if model["name"] == "Churn Model API Endpoint"
-    and model["creator"]["username"] == USERNAME
-    and model["project"]["slug"] == PROJECT_NAME
-][0]
-latest_model = cml.get_model(
-    {
-        "id": churn_model_details["id"],
-        "latestModelDeployment": True,
-        "latestModelBuild": True,
-    }
-)
-
-Model_CRN = latest_model["crn"]
-Deployment_CRN = latest_model["latestModelDeployment"]["crn"]
-model_endpoint = (
-    HOST.split("//")[0] + "//modelservice." + HOST.split("//")[1] + "/model"
-)
 
 # This will randomly return True for input and increases the likelihood of returning
 # true based on `percent`
@@ -230,12 +209,9 @@ def churn_error(item, percent):
     else:
         return True if item == "Yes" else False
 
-
 # Get 1000 samples
 df_sample = df.sample(1000)
-
 df_sample.groupby("Churn")["Churn"].count()
-
 df_sample_clean = (
     df_sample.replace({"SeniorCitizen": {"1": "Yes", "0": "No"}})
     .replace(r"^\s$", np.nan, regex=True)
@@ -258,7 +234,7 @@ for record in json.loads(df_sample_clean.to_json(orient="records")):
     no_churn_record.pop("customerID")
     no_churn_record.pop("Churn")
     # **note** this is an easy way to interact with a model in a script
-    response = cdsw.call_model(latest_model["accessKey"], no_churn_record)
+    response = cdsw.call_model(Model_AccessKey, no_churn_record)
     response_labels_sample.append(
         {
             "uuid": response["response"]["uuid"],
