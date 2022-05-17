@@ -102,12 +102,17 @@ class ExplainedModel:
         model_dir = os.path.join(DATA_DIR, "models", model_name)
         model_path = os.path.join(model_dir, model_name + ".pkl")
         result = ExplainedModel()
-        with open(model_path, "rb") as f:
-            result.__dict__.update(dill.load(f))
-        return result
+        try:
+            with open(model_path, "rb") as f:
+                result.__dict__.update(dill.load(f))
+            return result
+        except OSError as err: 
+            print(f"Model path does not exist, returned error: {err}")
 
     def save(self, model_name):
         model_dir = os.path.join(DATA_DIR, "models", model_name)
+        # ensure directory exists
+        os.makedirs(model_dir, exist_ok=True)
         model_path = os.path.join(model_dir, model_name + ".pkl")
         dilldict = {
             "data": self.data,

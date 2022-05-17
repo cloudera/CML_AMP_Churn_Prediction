@@ -29,6 +29,7 @@ runtimes:
   - editor: Workbench
     kernel: Python 3.7
     edition: Standard
+    version: 2021.12
     addons: ["Spark 2.4.7 - CDP 7.2.10 - CDE 1.11"]
 
 tasks:
@@ -44,6 +45,8 @@ tasks:
     name: Ingest data
     script: code/1_data_ingest.py
     short_summary: Ingest data into our Hive table
+    long_summary: >-
+      This script will only run if STORAGE_MODE is set to external
     cpu: 1
     memory: 2
       

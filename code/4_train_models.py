@@ -166,8 +166,14 @@ df = (df
       .replace(r"^\s$", np.nan, regex=True).dropna().reset_index()
       # drop unnecessary and personally identifying information
       .drop(columns=['index', 'customerID'])
-      .replace({"SeniorCitizen": {1: "Yes", 0: "No", "1": "Yes", "0": "No"}})
      )
+try:
+    # when loading from external data source, this column has str dtype
+    df.replace({"SeniorCitizen": {"1": "Yes", "0": "No"}}, inplace=True)
+except:
+    # when loading from local data source, this column has int dtype 
+    df.replace({"SeniorCitizen": {1: "Yes", 0: "No"}}, inplace=True)
+  
 df['TotalCharges'] = df['TotalCharges'].astype('float')
 df.index.name='id'
 
