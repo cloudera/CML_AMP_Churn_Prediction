@@ -168,7 +168,6 @@ df = (df
       .replace(r"^\s$", np.nan, regex=True).dropna().reset_index()
       # drop unnecessary and personally identifying information
       .drop(columns=['index', 'customerID'])
-      .replace({"SeniorCitizen": {1: "Yes", 0: "No", "1": "Yes", "0": "No"}})
      )
 df['TotalCharges'] = df['TotalCharges'].astype('float')
 df.index.name='id'
