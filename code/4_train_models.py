@@ -156,11 +156,9 @@ try:
 
     if spark.sql("SELECT count(*) FROM " + hive_table_fq).collect()[0][0] > 0:
         df = spark.sql("SELECT * FROM " + hive_table_fq).toPandas()
-        df.replace({"SeniorCitizen": {"1": "Yes", "0": "No"}})
 except:
     print("Hive table has not been created")
     df = pd.read_csv(os.path.join("../raw", "WA_Fn-UseC_-Telco-Customer-Churn-.csv"))
-    df.replace({"SeniorCitizen": {1: "Yes", 0: "No"}})
 
 
 # Clean and prep the dataframe
@@ -169,6 +167,13 @@ df = (df
       # drop unnecessary and personally identifying information
       .drop(columns=['index', 'customerID'])
      )
+try:
+    # when loading from external data source, this column has str dtype
+    df.replace({"SeniorCitizen": {"1": "Yes", "0": "No"}}, inplace=True)
+except:
+    # when loading from local data source, this column has int dtype 
+    df.replace({"SeniorCitizen": {1: "Yes", 0: "No"}}, inplace=True)
+  
 df['TotalCharges'] = df['TotalCharges'].astype('float')
 df.index.name='id'
 
