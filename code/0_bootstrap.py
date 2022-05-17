@@ -83,10 +83,6 @@ except:
         root = tree.getroot()
         for prop in root.findall("property"):
             if prop.find("name").text == "hive.metastore.warehouse.dir":
-              if len(prop.find("value").text.split("/")) == 5: 
-                print("Defaulting to PVC HDFS settings")
-                storage = "/user/" + os.getenv("HADOOP_USER_NAME")
-              else:
                 storage = (
                     prop.find("value").text.split("/")[0]
                     + "//"
