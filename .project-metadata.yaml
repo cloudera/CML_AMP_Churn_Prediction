@@ -30,7 +30,7 @@ runtimes:
     kernel: Python 3.7
     edition: Standard
     version: 2021.12
-    addons: ["Spark 2.4.7 - CDP 7.2.10 - CDE 1.11"]
+    addons: ["Spark 2.4.8 - CDE 1.15 - HOTFIX-1"]
 
 tasks:
   - type: run_session
