@@ -27,10 +27,9 @@ feature_dependencies:
 
 runtimes:
   - editor: Workbench
-    kernel: Python 3.7
+    kernel: Python 3.9
     edition: Standard
-    version: 2021.12
-    addons: ["Spark 2.4.8 - CDE 1.15 - HOTFIX-1"]
+    addons: ["Spark 3.2.3 - CDE 1.19.2 - HOTFIX-2"]
 
 tasks:
   - type: run_session
