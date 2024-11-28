@@ -27,7 +27,7 @@ feature_dependencies:
 
 runtimes:
   - editor: PBJ Workbench
-    kernel: Python 3.10
+    kernel: Python 3.9
     edition: Standard
     addons: ["Spark 3.2.3 - CDE 1.22.0"]
 
