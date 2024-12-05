@@ -201,9 +201,14 @@
 
 from collections import ChainMap
 import numpy
-from churnexplainer import ExplainedModel
 import cml.metrics_v1 as metrics
 import cml.models_v1 as models
+
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from churnexplainer import ExplainedModel
 
 # Load the model saved earlier.
 em = ExplainedModel.load(model_name="telco_linear")
