@@ -201,13 +201,14 @@
 
 from collections import ChainMap
 import numpy
+import os
 import cml.metrics_v1 as metrics
 import cml.models_v1 as models
 
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
+try:
+  os.chdir("code")
+except:
+  pass
 from churnexplainer import ExplainedModel
 
 # Load the model saved earlier.

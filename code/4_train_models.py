@@ -132,10 +132,10 @@ from sklearn.compose import ColumnTransformer
 from lime.lime_tabular import LimeTabularExplainer
 import cml.metrics_v1 as metrics
 
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
+try:
+  os.chdir("code")
+except:
+  pass
 from churnexplainer import ExplainedModel, CategoricalEncoder
 
 hive_database = os.environ["HIVE_DATABASE"]
