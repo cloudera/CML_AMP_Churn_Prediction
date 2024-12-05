@@ -85,7 +85,7 @@
 
 # Click **Start Run** and the expriment will be sheduled to build and run. Once the Run is
 # completed you can view the outputs that are tracked with the experiment using the
-# `cdsw.track_metrics` function. It's worth reading through the code to get a sense of what
+# `cml.metrics_v1.track_metrics` function. It's worth reading through the code to get a sense of what
 # all is going on.
 
 # More Details on Running Experiments
@@ -112,12 +112,8 @@
 # [two methods](https://docs.cloudera.com/machine-learning/cloud/experiments/topics/ml-tracking-metrics.html)
 # to let the user evaluate results.
 #
-# **`cdsw.track_metric`** stores a single value which can be viewed in the Experiments UI.
+# **`cml.metrics_v1.track_metric`** stores a single value which can be viewed in the Experiments UI.
 # Here we store two metrics and the filepath to the saved model.
-#
-# **`cdsw.track_file`** stores a file for later inspection.
-# Here we store the saved model, but we could also have saved a report csv, plot, or any other
-# output file.
 #
 
 
@@ -127,7 +123,6 @@ import sys
 import os
 import pandas as pd
 import numpy as np
-import cdsw
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
@@ -135,6 +130,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.compose import ColumnTransformer
 from lime.lime_tabular import LimeTabularExplainer
+import cml.metrics_v1 as metrics
 
 try:
   os.chdir("code")
@@ -255,10 +251,9 @@ explainedmodel.save(model_name='telco_linear')
 
 # If running as as experiment, this will track the metrics and add the model trained in this
 # training run to the experiment history.
-cdsw.track_metric("train_score", round(train_score, 2))
-cdsw.track_metric("test_score", round(test_score, 2))
-#cdsw.track_metric("model_path", explainedmodel.model_path)
-#cdsw.track_file(explainedmodel.model_path)
+metrics.track_metric("train_score", round(train_score, 2))
+metrics.track_metric("test_score", round(test_score, 2))
+#metrics.track_metric("model_path", explainedmodel.model_path)
 
 # Wrap up
 

@@ -46,8 +46,8 @@
 # into a Pandas dataframe, and display different features as graphs.
 
 # ```python
-# help(cdsw.read_metrics)
-# Help on function read_metrics in module cdsw:
+# help(cml.metrics_v1.read_metrics)
+# Help on function read_metrics in module cml:
 #
 # read_metrics(model_deployment_crn=None, start_timestamp_ms=None, end_timestamp_ms=None, model_crn=None, model_build_crn=None)
 #    Description
@@ -76,7 +76,7 @@
 #        metrics data
 # ```
 
-import cdsw, time, os
+import time, os
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -85,6 +85,7 @@ import seaborn as sns
 import sqlite3
 import cmlapi
 from src.api import ApiUtility
+import cml.metrics_v1 as metrics
 
 # You can access all models with API V2
 client = cmlapi.default_client()
@@ -100,7 +101,7 @@ Deployment_CRN = apiUtil.get_latest_deployment_details(model_name="Churn Model A
 
 
 # Read in the model metrics dict
-model_metrics = cdsw.read_metrics(
+model_metrics = metrics.read_metrics(
     model_crn=Model_CRN, model_deployment_crn=Deployment_CRN
 )
 

@@ -64,7 +64,7 @@ The other option is running an **[Experiment](https://docs.cloudera.com/machine-
 * **Kernel** : Python 3
 * **Engine Profile** : 1 vCPU / 2 GiB
 
-Click **Start Run** and the experiment will be scheduled to build and run. Once the Run has completed, you can view the outputs that are tracked with the experiment using the `cdsw.track_metrics` function. It's worth reading through the code to get a sense of what all is going on.
+Click **Start Run** and the experiment will be scheduled to build and run. Once the Run has completed, you can view the outputs that are tracked with the experiment using the `cml.metrics_v1.track_metrics` function. It's worth reading through the code to get a sense of what all is going on.
 
 
 ### 5 Serve Model
