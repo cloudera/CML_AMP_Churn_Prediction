@@ -47,7 +47,7 @@
 # models that have been deployed into production.
 
 ### Add Model Metrics
-# New  metrics can be added to a model and existing ones updated using the `cdsw`
+# New  metrics can be added to a model and existing ones updated using the `cml`
 # library and the [model metrics SDK](https://docs.cloudera.com/machine-learning/cloud/model-metrics/topics/ml-tracking-model-metrics-using-python.html)
 # If model metrics is enabled for a model, then every call to that model is recorded
 # in the model metric database. There are situations in which its necessary to update or
@@ -63,11 +63,11 @@
 # This tracked model response entry can then be updated at a later date to add the
 # actual "ground truth" value, or any other data that you want to add.
 #
-# Data can be added to a tracked model response using the `cdsw.track_delayed_metrics`.
+# Data can be added to a tracked model response using the `cml.metrics_v1.track_delayed_metrics`.
 #
 # ```python
-# help(cdsw.track_delayed_metrics)
-# Help on function track_delayed_metrics in module cdsw:
+# help(cml.metrics_v1.track_delayed_metrics)
+# Help on function track_delayed_metrics in module cml:
 #
 # track_delayed_metrics(metrics, prediction_uuid)
 #    Description
@@ -92,11 +92,11 @@
 #### Adding Additional Metrics
 # It is also possible to add additional data/metrics to the model database to track
 # things like aggrerate metrics that aren't associated with the one particular response.
-# This can be done using the `cdsw.track_aggregate_metrics` function.
+# This can be done using the `cml.metrics_v1.track_aggregate_metrics` function.
 
 # ```python
-# help(cdsw.track_aggregate_metrics)
-# Help on function track_aggregate_metrics in module cdsw:
+# help(cml.metrics_v1.track_aggregate_metrics)
+# Help on function track_aggregate_metrics in module cml:
 #
 # track_aggregate_metrics(metrics, start_timestamp_ms, end_timestamp_ms, model_deployment_crn=None)
 #    Description
@@ -137,7 +137,7 @@
 # Overtime this accuracy metric falls due the error introduced into the data.
 
 
-import cdsw, time, os, random, json
+import time, os, random, json
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -148,6 +148,8 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 import cmlapi
 from src.api import ApiUtility
+import cml.metrics_v1 as metrics
+import cml.models_v1 as models
 
 hive_database = os.environ["HIVE_DATABASE"]
 hive_table = os.environ["HIVE_TABLE"]
@@ -234,7 +236,7 @@ for record in json.loads(df_sample_clean.to_json(orient="records")):
     no_churn_record.pop("customerID")
     no_churn_record.pop("Churn")
     # **note** this is an easy way to interact with a model in a script
-    response = cdsw.call_model(Model_AccessKey, no_churn_record)
+    response = models.call_model(Model_AccessKey, no_churn_record)
     response_labels_sample.append(
         {
             "uuid": response["response"]["uuid"],
@@ -248,7 +250,7 @@ for record in json.loads(df_sample_clean.to_json(orient="records")):
 # every 100 calls to the model.
 for index, vals in enumerate(response_labels_sample):
     print("Update {} records".format(index)) if (index % 50 == 0) else None
-    cdsw.track_delayed_metrics({"final_label": vals["final_label"]}, vals["uuid"])
+    metrics.track_delayed_metrics({"final_label": vals["final_label"]}, vals["uuid"])
     if index % 100 == 0:
         start_timestamp_ms = vals["timestamp_ms"]
         final_labels = []
@@ -261,7 +263,7 @@ for index, vals in enumerate(response_labels_sample):
         accuracy = classification_report(
             final_labels, response_labels, output_dict=True
         )["accuracy"]
-        cdsw.track_aggregate_metrics(
+        metrics.track_aggregate_metrics(
             {"accuracy": accuracy},
             start_timestamp_ms,
             end_timestamp_ms,

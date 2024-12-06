@@ -93,19 +93,19 @@
 # and [Model Governance](https://docs.cloudera.com/machine-learning/cloud/model-governance/topics/ml-enabling-model-governance.html)
 #
 # The first requirement to make the model use the model metrics feature by adding the
-# `@cdsw.model_metrics` [Python Decorator](https://wiki.python.org/moin/PythonDecorators)
+# `@cml.models_v1.model_metrics` [Python Decorator](https://wiki.python.org/moin/PythonDecorators)
 # before the fuction.
 #
-# Then you can use the *`cdsw.track_metric`* function to add additional
+# Then you can use the *`cml.metrics_v1.track_metric`* function to add additional
 # data to the underlying database for each call made to the model.
-# **Note:** `cdsw.track_metric` has different functionality depening on if its being
+# **Note:** `cml.metrics_v1.track_metric` has different functionality depening on if its being
 # used in an *Experiment* or a *Model*.
 #
 # More detail is available
-# using the `help(cdsw.track_mertic)` function
+# using the `help(cml.metrics_v1.track_mertic)` function
 # ```
-# help(cdsw.track_metric)
-# Help on function track_metric in module cdsw:
+# help(cml.metrics_v1.track_metric)
+# Help on function track_metric in module cml:
 #
 # track_metric(key, value)
 #    Description
@@ -114,13 +114,13 @@
 #    Tracks a metric for an experiment or model deployment
 #        Example:
 #            model deployment usage:
-#                >>>@cdsw.model_metrics
+#                >>>@models.cml_model(metrics=True)
 #                >>>predict_func(args):
-#                >>>   cdsw.track_metric("input_args", args)
+#                >>>   cml.metrics_v1.track_metric("input_args", args)
 #                >>>   return {"result": "prediction"}
 #
 #            experiment usage:
-#                >>>cdsw.track_metric("input_args", args)
+#                >>>cml.metrics_v1.track_metric("input_args", args)
 #
 #    Parameters
 #    ----------
@@ -200,18 +200,26 @@
 
 
 from collections import ChainMap
-import cdsw, numpy
+import numpy
+import os
+import cml.metrics_v1 as metrics
+import cml.models_v1 as models
+
+try:
+  os.chdir("code")
+except:
+  pass
 from churnexplainer import ExplainedModel
 
 # Load the model saved earlier.
 em = ExplainedModel.load(model_name="telco_linear")
 
 # *Note:* If you want to test this in a session, comment out the line
-# `@cdsw.model_metrics` below. Don't forget to uncomment when you
+# `@models.cml_model(metrics=True)` below. Don't forget to uncomment when you
 # deploy, or it won't write the metrics to the database
 
 
-@cdsw.model_metrics
+@models.cml_model(metrics=True)
 # This is the main function used for serving the model. It will take in the JSON formatted arguments , calculate the probablity of
 # churn and create a LIME explainer explained instance and return that as JSON.
 def explain(args):
@@ -220,18 +228,18 @@ def explain(args):
     probability, explanation = em.explain_dct(data)
 
     # Track inputs
-    cdsw.track_metric("input_data", data)
+    metrics.track_metric("input_data", data)
 
     # Track our prediction
-    cdsw.track_metric("probability", probability)
+    metrics.track_metric("probability", probability)
 
     # Track explanation
-    cdsw.track_metric("explanation", explanation)
+    metrics.track_metric("explanation", explanation)
 
     return {"data": dict(data), "probability": probability, "explanation": explanation}
 
 
-# To test this in a Session, comment out the `@cdsw.model_metrics`  line,
+# To test this in a Session, comment out the `@models.cml_model(metrics=True)` line,
 # uncomment the and run the two rows below.
 #x={"StreamingTV":"No","MonthlyCharges":70.35,"PhoneService":"No","PaperlessBilling":"No","Partner":"No","OnlineBackup":"No","gender":"Female","Contract":"Month-to-month","TotalCharges":1397.475,"StreamingMovies":"No","DeviceProtection":"No","PaymentMethod":"Bank transfer (automatic)","tenure":29,"Dependents":"No","OnlineSecurity":"No","MultipleLines":"No","InternetService":"DSL","SeniorCitizen":"No","TechSupport":"No"}
 #explain(x)

@@ -26,10 +26,10 @@ feature_dependencies:
   - model_metrics
 
 runtimes:
-  - editor: Workbench
+  - editor: PBJ Workbench
     kernel: Python 3.9
     edition: Standard
-    addons: ["Spark 3.2.3 - CDE 1.19.2 - HOTFIX-2"]
+    addons: ["Spark 3.2.3 - CDE 1.22.0"]
 
 tasks:
   - type: run_session
