@@ -27,9 +27,9 @@ feature_dependencies:
 
 runtimes:
   - editor: PBJ Workbench
-    kernel: Python 3.9
+    kernel: Python 3.11
     edition: Standard
-    addons: ["Spark 3.2.3 - CDE 1.22.0"]
+    addons: ["Spark 3.5.1 - CDE 1.24.1 - HOTFIX-1"]
 
 tasks:
   - type: run_session

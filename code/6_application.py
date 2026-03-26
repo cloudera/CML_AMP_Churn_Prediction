@@ -117,13 +117,11 @@
 # Deeper red indicates incresed importance for predicting that a customer **will churn**
 # while deeper blue indicates incresed importance for predicting that a customer **will not**.
 #
-from flask import Flask, send_from_directory, request
+from flask import Flask, send_from_directory, request, jsonify
 from IPython.display import Javascript, HTML
 import random
 import os
 from collections import ChainMap
-from flask import Flask
-from pandas.io.json import dumps as jsonify
 import logging
 import subprocess
 from IPython.display import Image
