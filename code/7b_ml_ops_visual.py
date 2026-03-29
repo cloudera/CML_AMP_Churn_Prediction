@@ -106,7 +106,7 @@ model_metrics = metrics.read_metrics(
 )
 
 # This is a handy way to unravel the dict into a big pandas dataframe
-metrics_df = pd.io.json.json_normalize(model_metrics["metrics"])
+metrics_df = pd.json_normalize(model_metrics["metrics"])
 metrics_df.tail().T
 
 # Write the data to SQL lite for visualization
