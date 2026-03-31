@@ -163,12 +163,11 @@ df = (df
       # drop unnecessary and personally identifying information
       .drop(columns=['index', 'customerID'])
      )
-try:
-    # when loading from external data source, this column has str dtype
-    df.replace({"SeniorCitizen": {"1": "Yes", "0": "No"}}, inplace=True)
-except:
-    # when loading from local data source, this column has int dtype 
-    df.replace({"SeniorCitizen": {1: "Yes", 0: "No"}}, inplace=True)
+
+df['SeniorCitizen'] = df['SeniorCitizen'].astype(str).replace({
+    "1": "Yes",
+    "0": "No",
+})
   
 df['TotalCharges'] = df['TotalCharges'].astype('float')
 df.index.name='id'

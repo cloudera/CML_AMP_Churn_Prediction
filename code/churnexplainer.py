@@ -227,7 +227,7 @@ class CategoricalEncoder(TransformerMixin):
         self.cat_columns_ix_ = {
             c: i
             for i, c in enumerate(X.columns)
-            if pd.api.types.is_categorical_dtype(X[c])
+            if isinstance(X[c].dtype, pd.CategoricalDtype)
         }
         self.cat_columns_ = pd.Index(self.cat_columns_ix_.keys())
         self.non_cat_columns_ = X.columns.drop(self.cat_columns_)

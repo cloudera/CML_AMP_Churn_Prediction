@@ -117,16 +117,33 @@
 # Deeper red indicates incresed importance for predicting that a customer **will churn**
 # while deeper blue indicates incresed importance for predicting that a customer **will not**.
 #
-from flask import Flask, send_from_directory, request
+from flask import Flask, send_from_directory, request, Response
 from IPython.display import Javascript, HTML
 import random
 import os
+import json
+import numpy as np
 from collections import ChainMap
-from flask import Flask
-from pandas.io.json import dumps as jsonify
 import logging
 import subprocess
 from IPython.display import Image
+
+
+class _NumpyEncoder(json.JSONEncoder):
+    """JSON encoder that converts numpy scalar types to native Python types."""
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
+
+
+def jsonify(obj):
+    """Return a JSON Flask Response, handling numpy scalar types."""
+    return Response(json.dumps(obj, cls=_NumpyEncoder), mimetype="application/json")
 
 os.chdir("code")
 from churnexplainer import ExplainedModel
